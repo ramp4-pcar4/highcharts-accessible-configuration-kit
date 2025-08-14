@@ -13,33 +13,44 @@
                 </span>
             </h1>
 
-            <button
-                @click="changeLang"
-                class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!props.plugin"
-            >
-                {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
-            </button>
+            <div class="flex items-center space-x-2">
+                <button
+                    @click="$vfm.open(`hack-help-panel`)"
+                    class="bg-white border rounded-full border-black hover:bg-gray-100 font-bold w-10 h-10 ml-auto"
+                >
+                    {{ '?' }}
+                </button>
 
-            <button
-                @click="emit('cancel')"
-                class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-else
-            >
-                {{ $t('HACK.label.cancel') }}
-            </button>
+                <HackHelpPanel></HackHelpPanel>
 
-            <button
-                @click="saveChanges"
-                class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
-                :class="{ 'disabled hover:bg-gray-400': Object.keys(chartStore.chartConfig).length === 0 }"
-                :disabled="Object.keys(chartStore.chartConfig).length === 0"
-            >
-                {{ $t('HACK.saveChanges') }}
-                <span v-if="saving" class="align-middle inline-block px-1">
-                    <Spinner size="16px" color="#009cd1" class="ml-1 mb-1"></Spinner>
-                </span>
-            </button>
+                <button
+                    @click="changeLang"
+                    class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
+                    v-if="!props.plugin"
+                >
+                    {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
+                </button>
+
+                <button
+                    @click="emit('cancel')"
+                    class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
+                    v-else
+                >
+                    {{ $t('HACK.label.cancel') }}
+                </button>
+
+                <button
+                    @click="saveChanges"
+                    class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
+                    :class="{ 'disabled hover:bg-gray-400': Object.keys(chartStore.chartConfig).length === 0 }"
+                    :disabled="Object.keys(chartStore.chartConfig).length === 0"
+                >
+                    {{ $t('HACK.saveChanges') }}
+                    <span v-if="saving" class="align-middle inline-block px-1">
+                        <Spinner size="16px" color="#009cd1" class="ml-1 mb-1"></Spinner>
+                    </span>
+                </button>
+            </div>
         </header>
 
         <div class="items-stretch flex">
@@ -69,10 +80,13 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import type { Component, PropType } from 'vue';
 
+import HackHelpPanel from './components/helpers/hack-help-panel/hack-help-panel.vue';
 import { useChartStore } from './stores/chartStore';
 import { useDataStore } from './stores/dataStore';
 import { useI18n } from 'vue-i18n';
 import { CurrentView, HighchartsConfig } from './definitions';
+import axios from 'axios';
+import { marked } from 'marked';
 
 import SideMenu from './components/side-menu.vue';
 import Spinner from './components/helpers/spinner.vue';
