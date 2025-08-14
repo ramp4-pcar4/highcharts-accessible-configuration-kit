@@ -106,3 +106,5 @@ HACK.customization.data.triangle,Triangle,1,Triangle,1
 HACK.customization.axes.yaxis,Y-axis title,1,Titre de l'axe Y,1
 HACK.customization.axes.xaxis,X-axis title,1,Titre de l'axe X,1
 HACK.customization.axes.placeholder,Untitled axis,1,Axes sans titre,1
+HACK.help.title,Highcharts Accessible Configuration Kit User Guide,1,Trousse de Configuration Accessible Highcharts – Guide d’aide,0
+HACK.help.title.mobile,HACK User Guide,1,TCAH – Guide d’aide,0
