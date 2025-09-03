@@ -343,10 +343,14 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update a single series value after data grid cell has been modified */
         updateVal(rowIdx: number, colIdx: number, val: string): void {
-            if (colIdx) {
-                this.chartConfig.series[colIdx - 1].data[rowIdx] = parseInt(val);
+            if (this.chartConfig.series[0].type === 'pie' && colIdx === 0) {
+                this.chartConfig.series[0].data[rowIdx].name = val;
             } else {
-                this.chartConfig.xAxis.categories[rowIdx] = val;
+                if (colIdx) {
+                    this.chartConfig.series[colIdx - 1].data[rowIdx] = parseInt(val);
+                } else {
+                    this.chartConfig.xAxis.categories[rowIdx] = val;
+                }
             }
         },
 
