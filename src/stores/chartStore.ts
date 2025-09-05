@@ -310,10 +310,21 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update data series after inserting row */
         insertRow(rowIdx: number): void {
-            this.chartConfig.xAxis.categories.splice(rowIdx, 0, '');
-            this.chartConfig.series.forEach((series: SeriesData) => {
-                series.data?.splice(rowIdx, 0, 0);
-            });
+            if (this.chartType === 'pie') {
+                const series = this.chartConfig.series[0];
+                const newColor = this.defaultColours[rowIdx - 1];
+                (series.data as { name: string; y: number; color: string }[]).splice(rowIdx, 0, {
+                    name: '',
+                    y: 0,
+                    color: newColor
+                });
+                series.colors = [...series.colors, newColor];
+            } else {
+                this.chartConfig.xAxis.categories.splice(rowIdx, 0, '');
+                this.chartConfig.series.forEach((series: SeriesData) => {
+                    series.data?.splice(rowIdx, 0, 0);
+                });
+            }
         },
 
         /** Update data series after inserting column */
@@ -343,9 +354,13 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update a single series value after data grid cell has been modified */
         updateVal(rowIdx: number, colIdx: number, val: string): void {
-            if (this.chartConfig.series[0].type === 'pie' && colIdx === 0) {
-                this.chartConfig.series[0].data[rowIdx].name = val;
-                this.chartConfig.xAxis.categories[rowIdx] = val;
+            if (this.chartConfig.series[0].type === 'pie') {
+                if (colIdx === 0) {
+                    this.chartConfig.series[0].data[rowIdx].name = val;
+                    this.chartConfig.xAxis.categories[rowIdx] = val;
+                } else if (colIdx === 1) {
+                    this.chartConfig.series[0].data[rowIdx].y = parseFloat(val);
+                }
             } else {
                 if (colIdx) {
                     this.chartConfig.series[colIdx - 1].data[rowIdx] = parseInt(val);

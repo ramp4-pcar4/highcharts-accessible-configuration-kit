@@ -85,7 +85,7 @@ export const useDataStore = defineStore('chartData', {
 
         /** Add new row to grid data */
         addNewRow(selectedRowIdx: string, below: boolean = true): void {
-            const newRow = this.headers.map(() => '');
+            const newRow = this.headers.map((_, colIdx) => (colIdx === 0 ? '' : '0'));
             const newIdx = parseInt(selectedRowIdx);
             // add empty row based on insert above/below
             if (below) {

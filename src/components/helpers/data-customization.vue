@@ -255,8 +255,8 @@ const updateColour = (eventData: any) => {
 };
 
 const updatePieColour = (index: number, color: string) => {
-    if (activeSeries.value?.colors) {
-        activeSeries.value.colors[index] = color;
+    if (activeSeries.value?.data) {
+        activeSeries.value.data[index].color = color;
     }
 };
 
