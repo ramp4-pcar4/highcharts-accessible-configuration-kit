@@ -32,8 +32,8 @@
             <button
                 @click="saveChanges"
                 class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
-                :class="{ 'disabled hover:bg-gray-400': Object.keys(chartStore.chartConfig).length === 0 }"
-                :disabled="Object.keys(chartStore.chartConfig).length === 0"
+                :class="{ 'disabled hover:bg-gray-400': dataStore.datatableView === false }"
+                :disabled="dataStore.datatableView === false"
             >
                 {{ $t('HACK.saveChanges') }}
                 <span v-if="saving" class="align-middle inline-block px-1">
