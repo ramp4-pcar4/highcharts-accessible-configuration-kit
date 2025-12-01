@@ -29,11 +29,11 @@
         "vue": "^3.4.37",
         "vue-accessible-color-picker": "^5.2.0",
         "vue-final-modal": "^4.5.5",
-        "vue-i18n": "^10.0.4",
+        "vue-i18n": "^11.2.2",
         "vue-papa-parse": "^3.1.0",
         "vue-router": "^4.2.4",
-        "vue3-json-editor": "^1.1.5",
         "vue-tippy": "^6.3.1",
+        "vue3-json-editor": "^1.1.5",
         "vuedraggable": "^4.1.0"
     },
     "devDependencies": {
@@ -41,18 +41,16 @@
         "@babel/eslint-parser": "^7.12.16",
         "@rollup/plugin-dsv": "^3.0.4",
         "@types/highcharts": "^5.0.44",
-        "@vitejs/plugin-vue": "^5.1.4",
-        "@vue/cli-plugin-babel": "~5.0.0",
-        "@vue/cli-plugin-eslint": "~5.0.0",
-        "@vue/cli-service": "~5.0.0",
+        "@vitejs/plugin-vue": "^6.0.2",
+        "autoprefixer": "^10.4.14",
         "eslint": "^9.13.0",
         "eslint-plugin-prettier": "^5.2.1",
         "eslint-plugin-vue": "^9.30.0",
         "postcss": "^8.4.47",
         "prettier": "^3.3.3",
-        "tailwindcss": "^3.4.14",
+        "tailwindcss": "^3.4.7",
         "typescript": "~5.6.3",
-        "vite": "^6.2.7",
+        "vite": "^7.2.6",
         "vue-eslint-parser": "^9.3.1"
     }
 }
