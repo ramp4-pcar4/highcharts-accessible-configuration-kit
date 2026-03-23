@@ -94,6 +94,7 @@ HACK.customization.data.series.scatter,Scatter,1,Dispersion,1
 HACK.customization.data.series.spline,Spline,1,Spline,1
 HACK.customization.data.series.pie,Pie,1,Circulaire,1
 HACK.customization.data.colour,Data colour,1,Couleur des données,1
+HACK.customization.data.textures, Add textures,1, Add textures (FR), 0
 HACK.customization.data.colours,Data colours,1,Couleurs des données,1
 HACK.customization.data.dashStyle,Dash style,1,Style de tiret,1
 HACK.customization.data.dot,Dotted,1,Pointé,1
