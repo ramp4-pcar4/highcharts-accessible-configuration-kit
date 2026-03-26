@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Highcharts Accessible Configuration Kit</title>
+
+        <link rel="stylesheet" href="https://www.canada.ca/etc/designs/canada/cdts/gcweb/v5_0_2/cdts/cdts-styles.css" />
+        <script
+            src="https://www.canada.ca/etc/designs/canada/cdts/gcweb/v5_0_2/cdts/compiled/wet-en.js"
+            data-cdts-setup='{"cdnEnv": "prod"}'
+        ></script>
+      <script type="module" crossorigin src="./assets/main-CiiIHsJa.js"></script>
+      <link rel="stylesheet" crossorigin href="./assets/main-C7fBqo2e.css">
+    </head>
+
+    <body>
+        <div id="def-top"></div>
+
+        <div id="wb-cont">
+            <div id="app"></div>
+        </div>
+
+        <div id="def-footer"></div>
+
+        <script type="text/javascript">
+            var defTop = document.getElementById('def-top');
+            defTop.outerHTML = wet.builder.top({
+                lngLinks: [
+                    {
+                        lang: 'fr',
+                        href: 'index-fr.html' + (window.location.hash || ''),
+                        text: 'Français'
+                    }
+                ]
+            });
+            setTimeout(() => {
+                const langChangeContainer = document.querySelector('#wb-lng');
+                if (!langChangeContainer) return;
+
+                const langChange = langChangeContainer.querySelector('a');
+                if (!langChange) return;
+
+                langChange.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    const confirmSwitch = confirm(
+                        'Switching language will reload the page. Any data you have entered will be lost. Continue?'
+                    );
+
+                    if (confirmSwitch) {
+                        window.location.href = 'index-fr.html' + (window.location.hash || '');
+                    }
+                });
+            }, 0);
+        </script>
+
+        <script>
+            var defFooter = document.getElementById('def-footer');
+            defFooter.outerHTML = wet.builder.footer({});
+        </script>
+
+        <script>
+            document.write(wet.builder.refFooter({}));
+        </script>
+
+
+        <style>
+            html {
+                font-size: 16px;
+            }
+        </style>
+    </body>
+</html>
