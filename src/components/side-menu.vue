@@ -26,8 +26,14 @@
                     fill="none"
                     stroke="#707070"
                 >
-                    <path class="transition-all duration-500 ease-in-out" :d="`m3.5 7h${sidemenuStore.expanded ? '17' : '8.5'}`" />
-                    <path class="transition-all duration-500 ease-in-out" :d="`m3.5 12h${sidemenuStore.expanded ? '17' : '8.5'}`" />
+                    <path
+                        class="transition-all duration-500 ease-in-out"
+                        :d="`m3.5 7h${sidemenuStore.expanded ? '17' : '8.5'}`"
+                    />
+                    <path
+                        class="transition-all duration-500 ease-in-out"
+                        :d="`m3.5 12h${sidemenuStore.expanded ? '17' : '8.5'}`"
+                    />
                     <path d="m3.5 17h17" />
                 </svg>
             </button>
@@ -334,7 +340,7 @@
                 class="absolute right-2 bottom-2"
                 href="https://www.youtube.com/watch?v=zzk0VQ0dVMU&feature=youtu.be"
                 target="_blank"
-                v-if="chartStore.chartConfig && chartStore.chartConfig.title?.text.toLowerCase() === 'breakfast'"
+                v-if="chartStore.chartConfig && chartStore.chartConfig.title?.text?.en.toLowerCase() === 'breakfast'"
             >
                 <svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="#000000">
                     <g id="SVGRepo_iconCarrier">
@@ -361,11 +367,16 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
 import { useSidemenuStore } from '../stores/sidemenuStore';
 import { saveAs } from 'file-saver';
 import { CurrentView } from '../definitions';
+import type { LangId } from '../definitions';
+import { buildContextMenuLabels } from '@/utils/contextMenu';
+
+import JSZip from 'jszip';
 
 const emit = defineEmits(['change-view']);
 
@@ -381,14 +392,15 @@ defineProps({
     }
 });
 
+const { t } = useI18n();
 const chartStore = useChartStore();
 const dataStore = useDataStore();
 const sidemenuStore = useSidemenuStore();
 const uploaded = computed(() => dataStore.uploaded);
 const btnDisabled = computed(() => {
-    const chartKeys = Object.keys(chartStore.chartConfig)
+    const chartKeys = Object.keys(chartStore.chartConfig);
     const onlyContextMenu = chartKeys.length === 1 && chartKeys[0] === 'lang';
-    return (!uploaded.value && (chartKeys.length === 0 ||  onlyContextMenu)) || dataStore.datatableView === false;
+    return (!uploaded.value && (chartKeys.length === 0 || onlyContextMenu)) || dataStore.datatableView === false;
 });
 
 const highchartsInput = ref<HTMLInputElement | null>(null);
@@ -420,12 +432,47 @@ const handleConfigFileUpload = (event: Event) => {
     dataStore.setDatatableView(true);
 };
 
-const exportHighchartsConfig = () => {
-    const filename = `${chartStore.chartConfig.title?.text.toLowerCase()}.json`;
-    // stringify + create blob for exported config
-    const json = JSON.stringify(chartStore.chartConfig, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    saveAs(blob, filename);
+const localizeConfig = (chartConfig: any, lang: string): any => {
+    if (Array.isArray(chartConfig)) {
+        return chartConfig.map((item) => localizeConfig(item, lang));
+    }
+
+    if (chartConfig && typeof chartConfig === 'object') {
+        // if it's a translation object
+        if ('en' in chartConfig || 'fr' in chartConfig) {
+            return chartConfig[lang] || '';
+        }
+
+        // otherwise recurse
+        const result = {};
+        for (const key in chartConfig) {
+            result[key] = localizeConfig(chartConfig[key], lang);
+        }
+        return result;
+    }
+
+    return chartConfig;
+};
+
+const exportHighchartsConfig = async () => {
+    const zipName = `${chartStore.chartConfig.title?.text[dataStore.uploadedFileLang].toLowerCase()}.zip`;
+    const zip = new JSZip();
+
+    ['en', 'fr'].forEach((lang) => {
+        // stringify + create blob for exported config
+        const localized = localizeConfig(chartStore.chartConfig, lang);
+
+        // override the context menu translations for this language
+        localized.lang = buildContextMenuLabels(t, lang as LangId);
+
+        const filename = `${localized.title?.text?.toLowerCase() || 'chart'}-${lang}.json`;
+        const json = JSON.stringify(localized, null, 2);
+
+        zip.file(filename, json);
+    });
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, zipName);
 };
 </script>
 

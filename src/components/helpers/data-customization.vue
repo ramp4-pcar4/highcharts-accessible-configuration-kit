@@ -11,13 +11,13 @@
             >
                 <!-- Enable insert when exactly one row is selected, enable delete when any number of rows are selected -->
                 <template v-if="chartType === 'pie'">
-                    <option v-for="series in allSeriesNames" :key="series" :value="series">
-                        {{ series }}
+                    <option v-for="series in allSeriesNames" :key="series[activeLang]" :value="series[activeLang]">
+                        {{ series[activeLang] }}
                     </option>
                 </template>
                 <template v-else>
                     <option v-for="(series, i) in dataSeries" :key="i" :value="i">
-                        {{ series }}
+                        {{ series[activeLang] }}
                     </option>
                 </template>
             </select>
@@ -199,6 +199,7 @@ watch(
 );
 
 const chartConfig = computed(() => chartStore.chartConfig);
+const activeLang = computed(() => chartStore.activeLang);
 
 const activeDataSeries = ref<number>(0);
 const activeSeries = computed(() => {

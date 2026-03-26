@@ -90,6 +90,26 @@
                 </div>
             </div>
 
+            <div v-if="fileName" class="mb-4 p-4 border rounded bg-gray-50">
+                <div class="text-lg font-bold text-gray-700">
+                    {{ $t('HACK.data.upload.lang') }}
+                </div>
+                <span class="inline-block mb-2 text-gray-600">
+                    {{ $t('HACK.data.upload.lang.description') }}
+                </span>
+
+                <div class="flex space-x-2">
+                    <button
+                        v-for="lang in langs"
+                        :key="lang"
+                        :class="getBtnClass(lang)"
+                        @click="(dataStore.setUploadedFileLang(lang), chartStore.setActiveLang(lang))"
+                    >
+                        {{ lang.toUpperCase() }}
+                    </button>
+                </div>
+            </div>
+
             <div class="mt-4 flex flex-col sm:flex-row gap-4">
                 <button
                     class="bg-black text-white rounded border border-black hover:bg-gray-900 font-bold p-4"
@@ -148,6 +168,8 @@ import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
 import { useSidemenuStore } from '../stores/sidemenuStore';
 import { CurrentView } from '../definitions';
+import type { LangId } from '../definitions';
+import { useI18n } from 'vue-i18n';
 
 import PasteData from './helpers/paste-data.vue';
 import DataTable from './data-table.vue';
@@ -163,6 +185,7 @@ const props = defineProps({
     }
 });
 
+const { locale } = useI18n();
 const chartStore = useChartStore();
 const dataStore = useDataStore();
 const sidemenuStore = useSidemenuStore();
@@ -190,6 +213,16 @@ const hidePage = computed(() => {
 const checkScreenSize = () => {
     isSmallScreen.value = window.innerWidth <= 500;
 };
+
+const langs = computed<LangId[]>(() => {
+    const current = locale.value as LangId;
+    return current === 'fr' ? ['fr', 'en'] : ['en', 'fr'];
+});
+
+const getBtnClass = (lang: LangId) => [
+    'px-4 py-2 rounded',
+    dataStore.uploadedFileLang === lang ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-700'
+];
 
 onMounted(() => {
     checkScreenSize();

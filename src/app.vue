@@ -74,6 +74,8 @@ import { useChartStore } from './stores/chartStore';
 import { useDataStore } from './stores/dataStore';
 import { useI18n } from 'vue-i18n';
 import { CurrentView, HighchartsConfig } from './definitions';
+import type { LangId } from './definitions';
+import { buildContextMenuLabels } from './utils/contextMenu';
 
 import SideMenu from './components/side-menu.vue';
 import Spinner from './components/helpers/spinner.vue';
@@ -103,21 +105,14 @@ const i18n = useI18n();
 const { t } = useI18n();
 const chartStore = useChartStore();
 const dataStore = useDataStore();
-const appLang = ref('');
+const appLang = ref<LangId>('en');
 const saving = ref<boolean>(false);
 const currentView = ref<CurrentView>(CurrentView.Data);
 
-const contextMenuLabels = computed(() => ({
-    viewFullscreen: t('HACK.export.viewFullscreen'),
-    printChart: t('HACK.export.printChart'),
-    downloadPNG: t('HACK.export.downloadPNG'),
-    downloadJPEG: t('HACK.export.downloadJPEG'),
-    downloadPDF: t('HACK.export.downloadPDF'),
-    downloadSVG: t('HACK.export.downloadSVG'),
-    downloadCSV: t('HACK.export.downloadCSV'),
-    downloadXLS: t('HACK.export.downloadXLS'),
-    viewData: t('HACK.export.viewData')
-}));
+const resolvedChartConfig = chartStore.resolvedChartConfig;
+const activeLang = computed(() => chartStore.activeLang);
+
+const contextMenuLabels = computed(() => buildContextMenuLabels(t, activeLang.value));
 
 const isMobile = ref(false);
 
@@ -143,16 +138,19 @@ if (!props.title) {
         const title = t('HACK.customization.titles.chartTitle');
         if (!chartStore.chartConfig || !chartStore.chartConfig.title) {
             chartStore.chartConfig = chartStore.chartConfig || {};
-            chartStore.chartConfig.title = chartStore.chartConfig.title || { text: '' };
+            chartStore.chartConfig.title = chartStore.chartConfig.title || { text: { en: '', fr: '' } };
         }
-        if (!chartStore.chartConfig.title.text || chartStore.chartConfig.title.text === prevTitle) {
-            chartStore.chartConfig.title.text = title;
+        if (
+            !chartStore.chartConfig.title.text[appLang.value] ||
+            chartStore.chartConfig.title.text[appLang.value] === prevTitle
+        ) {
+            chartStore.chartConfig.title.text[appLang.value] = title;
         }
         prevTitle = title;
     });
 }
 
-watch(i18n.locale, () => {
+watch(activeLang, () => {
     // set context menu labels based on the current language
     chartStore.setMenuOptions(contextMenuLabels.value);
     chartStore.refreshKey += 1;
@@ -161,7 +159,7 @@ watch(i18n.locale, () => {
 onMounted(() => {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    appLang.value = i18n.locale.value;
+    appLang.value = i18n.locale.value as LangId;
     // set locale only when standalone usage
     if (!props.plugin) {
         i18n.locale.value = appLang.value;
@@ -177,7 +175,7 @@ onMounted(() => {
     // if passed an existing highcharts config as prop, load and jump to datatable view
     if (props.config && Object.keys(props.config).length) {
         chartStore.setChartConfig(props.config);
-        dataStore.extractGridData(chartStore.chartConfig);
+        dataStore.extractGridData(resolvedChartConfig);
         setTimeout(() => {
             dataStore.setDatatableView(true);
         }, 0);

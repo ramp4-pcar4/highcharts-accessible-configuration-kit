@@ -1,6 +1,9 @@
 key,enValue,enValid,frValue,frValid
 HACK.lang.en,English,1,Anglais,1
 HACK.lang.fr,French,1,Français,1
+HACK.lang.config.en,English Configuration,1,Configuration Anglaise,0
+HACK.lang.config.fr,French Configuration,1,Configuration Française,0
+HACK.lang.config.translate,⚠ Ensure you complete translations for the {lang} configuration,1,⚠ Assurez-vous de compléter les traductions pour la configuration {lang},0
 HACK.saveChanges,Save Chart,1,Enregistrer le Graphique,1
 HACK.highcharts,Highcharts Accessible Configuration Kit,1,Trousse de Configuration Accessible Highcharts,1
 HACK.HACK,HACK,1,TCAH,1
@@ -23,6 +26,8 @@ HACK.data.description,"Upload your data to start creating a highchart. You may e
 HACK.data.drag,Drag and drop file here,1,Glissez et déposez le fichier ici,1
 HACK.data.filename,File name,1,Nom de fichier,1
 HACK.data.upload,Select file from device,1,Sélectionner un fichier sur l'appareil,1
+HACK.data.upload.lang,Select the language of your uploaded file:,1,Sélectionnez la langue de votre fichier téléchargé :,0
+HACK.data.upload.lang.description,This determines which column will be treated as the source language for editing. The other language will be pre-populated and marked for translation.,1,Cela détermine la colonne qui sera considérée comme la langue source pour la modification. L'autre langue sera préremplie et marquée pour la traduction.,0
 HACK.data.supported,"Supported file types: csv, xls, xlsx",1,"Types de fichiers pris en charge : csv, xls, xlsx",1
 HACK.data.unsupported,"Unsupported file type. Please upload a csv, xls, or xlsx file.",1,"Type de fichier non pris en charge. Veuillez télécharger un fichier csv, xls ou xlsx.",1
 HACK.data.import,Import data from file,1,Importer des données à partir d'un fichier,1
