@@ -16,7 +16,7 @@
             <button
                 @click="changeLang"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!props.plugin"
+                v-if="!wetTemplate"
             >
                 {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
             </button>
@@ -24,7 +24,7 @@
             <button
                 @click="emit('cancel')"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-else
+                v-if="props.plugin"
             >
                 {{ $t('HACK.label.cancel') }}
             </button>
@@ -34,6 +34,7 @@
                 class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
                 :class="{ 'disabled hover:bg-gray-400': dataStore.datatableView === false }"
                 :disabled="dataStore.datatableView === false"
+                v-if="props.plugin"
             >
                 {{ $t('HACK.saveChanges') }}
                 <span v-if="saving" class="align-middle inline-block px-1">
@@ -98,6 +99,7 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'saved']);
 
+const wetTemplate = !!document.getElementById('wb-bnr');
 const i18n = useI18n();
 const { t } = useI18n();
 const chartStore = useChartStore();
