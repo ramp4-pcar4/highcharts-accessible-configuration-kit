@@ -6,10 +6,7 @@ import dsv from '@rollup/plugin-dsv';
 import path from 'path';
 
 const baseConfig: UserConfigExport = {
-    plugins: [
-        vue(),
-        dsv()
-    ],
+    plugins: [vue(), dsv()],
     define: {
         'process.env': process.env
     },
@@ -23,7 +20,7 @@ const baseConfig: UserConfigExport = {
         target: 'esnext'
     },
     server: {
-        open: '/'
+        open: '/index-ca-en.html'
     }
 };
 
@@ -49,6 +46,16 @@ export default defineConfig(() => {
                 }
             },
             copyPublicDir: false
+        });
+    } else {
+        Object.assign(baseConfig.build!, {
+            rollupOptions: {
+                input: {
+                    main: path.resolve(__dirname, 'index.html'),
+                    en: path.resolve(__dirname, 'index-ca-en.html'),
+                    fr: path.resolve(__dirname, 'index-ca-fr.html')
+                }
+            }
         });
     }
 

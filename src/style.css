@@ -6,6 +6,39 @@
     text-align: center;
 }
 
+.hack-app input[type='checkbox'] {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    position: static;
+    opacity: 1;
+    appearance: auto;
+    -webkit-appearance: auto;
+    vertical-align: middle !important;
+}
+
+.hack-app .ml-auto {
+    margin-left: auto !important;
+}
+
+.hack-app #highcharts-side-menu a:focus {
+    outline: none;
+}
+
+.hack-app #highcharts-side-menu a:visited,
+.hack-app #highcharts-side-menu a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.highcharts-side-menu .router-link-active span {
+    font-weight: bold;
+}
+
+.hack-app #highcharts-side-menu .router-link-active span {
+    font-weight: bold;
+}
 .tippy-box[data-animation='chapter-menu'][data-placement^=right]>.tippy-backdrop {
     transform-origin: 50% 0 !important;
 }
