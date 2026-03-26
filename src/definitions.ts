@@ -4,24 +4,24 @@ export interface HighchartsConfig {
     };
     lang?: ExportMenuOptions;
     title: {
-        text: string;
+        text: LocalizedString;
     };
     credits?: {
         enabled: boolean;
     };
     subtitle: {
-        text: string;
+        text: LocalizedString;
     };
     yAxis: {
         title: {
-            text: string;
+            text: LocalizedString;
         };
     };
     xAxis: {
         title: {
-            text: string;
+            text: LocalizedString;
         };
-        categories: (number | string)[];
+        categories: (number | LocalizedString)[];
     };
     data?: {
         csv: string;
@@ -64,7 +64,7 @@ export interface ExportMenuOptions {
 }
 
 export interface SeriesData {
-    name: string;
+    name: LocalizedString;
     type: string;
     color?: string;
     colors?: string[];
@@ -82,3 +82,10 @@ export enum CurrentView {
     Template = 'template',
     Customization = 'customization'
 }
+
+export type LangId = 'en' | 'fr';
+
+export type LocalizedString = {
+    en: string;
+    fr: string;
+};
