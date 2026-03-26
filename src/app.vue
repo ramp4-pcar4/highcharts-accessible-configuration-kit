@@ -5,10 +5,10 @@
             :class="{ sticky: !props.plugin }"
         >
             <h1 class="w-mobile-full flex items-center truncate">
-                <span class="inline lg:hidden font-semibold text-lg m-1">
+                <span class="font-semibold text-lg m-1" v-if="isMobile">
                     {{ $t('HACK.HACK') }}
                 </span>
-                <span class="hidden lg:inline font-semibold text-lg m-1">
+                <span class="font-semibold text-lg m-1" v-else>
                     {{ $t('HACK.highcharts') }}
                 </span>
             </h1>
@@ -16,7 +16,7 @@
             <button
                 @click="changeLang"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!props.plugin"
+                v-if="!wetTemplate"
             >
                 {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
             </button>
@@ -24,7 +24,7 @@
             <button
                 @click="emit('cancel')"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-else
+                v-if="props.plugin"
             >
                 {{ $t('HACK.label.cancel') }}
             </button>
@@ -34,6 +34,7 @@
                 class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
                 :class="{ 'disabled hover:bg-gray-400': dataStore.datatableView === false }"
                 :disabled="dataStore.datatableView === false"
+                v-if="props.plugin"
             >
                 {{ $t('HACK.saveChanges') }}
                 <span v-if="saving" class="align-middle inline-block px-1">
@@ -66,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Component, PropType } from 'vue';
 
 import { useChartStore } from './stores/chartStore';
@@ -79,7 +80,6 @@ import Spinner from './components/helpers/spinner.vue';
 import DataSection from '@/components/data-section.vue';
 import ChartSelection from '@/components/chart-selection.vue';
 import ConfigCustomization from '@/components/config-customization.vue';
-
 const props = defineProps({
     plugin: {
         type: Boolean
@@ -98,6 +98,7 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'saved']);
 
+const wetTemplate = !!document.getElementById('wb-bnr');
 const i18n = useI18n();
 const { t } = useI18n();
 const chartStore = useChartStore();
@@ -117,6 +118,13 @@ const contextMenuLabels = computed(() => ({
     downloadXLS: t('HACK.export.downloadXLS'),
     viewData: t('HACK.export.viewData')
 }));
+
+const isMobile = ref(false);
+
+const checkScreenSize = () => {
+    isMobile.value = window.innerWidth < 1024;
+};
+
 
 const getTemplate = (): Component => {
     const pluginComponent: Record<CurrentView | string, Component> = {
@@ -151,6 +159,8 @@ watch(i18n.locale, () => {
 });
 
 onMounted(() => {
+        checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
     appLang.value = i18n.locale.value;
     // set locale only when standalone usage
     if (!props.plugin) {
@@ -197,6 +207,10 @@ const saveChanges = (): void => {
         saving.value = false;
     }, 1000);
 };
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkScreenSize);
+});
 </script>
 
 <style lang="scss">
