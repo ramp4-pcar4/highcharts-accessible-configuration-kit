@@ -16,7 +16,7 @@
             <button
                 @click="changeLang"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!props.plugin"
+                v-if="!wetTemplate"
             >
                 {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
             </button>
@@ -24,7 +24,7 @@
             <button
                 @click="emit('cancel')"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-else
+                v-if="props.plugin"
             >
                 {{ $t('HACK.label.cancel') }}
             </button>
@@ -98,6 +98,7 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'saved']);
 
+const wetTemplate = !!document.getElementById('wb-bnr');
 const i18n = useI18n();
 const { t } = useI18n();
 const chartStore = useChartStore();
