@@ -59,6 +59,7 @@
             </div>
         </div>
 
+        <LanguageTabs v-model:activeLang="chartStore.activeLang" />
         <!-- Datatable -->
         <div class="overflow-x-auto">
             <table class="table-auto border-collapse border-dotted border border-black w-full mt-5">
@@ -84,7 +85,7 @@
                                     :ref="(el) => (headerInput[colIdx] = el as HTMLInputElement | null)"
                                     class="col-header max-w-[calc(100%-21px)] box-border border border-transparent font-bold p-1 bg-transparent focus:border-black focus:bg-white rounded-md"
                                     type="text"
-                                    v-model="headers[colIdx]"
+                                    v-model="(headers[colIdx] as { [key: string]: string })[activeLang]"
                                     :aria-label="$t('HACK.datatable.colHeaders')"
                                     :style="{ width: Math.max(header.length + 2, 8) + 'ch' }"
                                     :readonly="editingHeader !== colIdx"
@@ -135,12 +136,16 @@
                                     "
                                     class="grid-cell max-w-[calc(100%-2px)] box-border border border-transparent bg-transparent p-1 focus:border-black focus:bg-white rounded-md"
                                     type="text"
-                                    v-model="gridData[rowIdx][colIdx]"
+                                    :value="getCellDisplayValue(rowIdx, colIdx)"
                                     :aria-label="$t('HACK.datatable.gridcells')"
-                                    :style="{ width: Math.max(gridData[rowIdx][colIdx].length + 2, 8) + 'ch' }"
+                                    :style="{
+                                        width:
+                                            Math.max(getCellDisplayValue(rowIdx, colIdx).toString().length + 2, 8) +
+                                            'ch'
+                                    }"
                                     :readonly="editingCell.rowIdx !== rowIdx || editingCell.colIdx !== colIdx"
                                     @input="updateCell(rowIdx, colIdx, ($event.target as HTMLInputElement).value)"
-                                    @focus="editCell(rowIdx, colIdx, gridData[rowIdx][colIdx])"
+                                    @focus="editCell(rowIdx, colIdx, getCellDisplayValue(rowIdx, colIdx))"
                                     @blur="escEditCell"
                                     @keyup.enter="($event.target as HTMLElement).blur()"
                                 />
@@ -172,7 +177,7 @@
         <div class="font-bold mt-8">{{ $t('HACK.preview') }}</div>
         <!-- Preview of chart -->
         <div class="dv-chart-container items-stretch h-full w-full mt-2">
-            <highchart :key="chartStore.refreshKey" :options="chartConfig"></highchart>
+            <highchart :key="chartStore.refreshKey" :options="chartStore.resolvedChartConfig"></highchart>
         </div>
 
         <div class="flex items-center mt-4">
@@ -200,11 +205,14 @@ import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
 import { useI18n } from 'vue-i18n';
 import { CurrentView } from '../definitions';
+import type { LocalizedString } from '../definitions';
 
 import Highcharts from 'highcharts';
 import dataModule from 'highcharts/modules/data';
 import exporting from 'highcharts/modules/exporting';
 import exportData from 'highcharts/modules/export-data';
+
+import LanguageTabs from './helpers/language-tabs.vue';
 
 exporting(Highcharts);
 exportData(Highcharts);
@@ -233,11 +241,9 @@ const $papa: any = inject('$papa');
 const dataStore = useDataStore();
 const chartStore = useChartStore();
 
+const activeLang = computed(() => chartStore.activeLang);
 const headers = computed(() => dataStore.headers);
 const gridData = computed(() => dataStore.gridData);
-const chartConfig = computed(() => {
-    return chartStore.chartConfig;
-});
 
 const headerInput = ref<(HTMLInputElement | null)[]>([]);
 const gridCellInput = ref<(HTMLInputElement | null)[]>([]);
@@ -299,24 +305,28 @@ onMounted(() => {
             header: true, // first row headers
             skipEmptyLines: true,
             complete: (res: any) => {
-                dataStore.setHeaders(res.meta.fields || []);
-                dataStore.setGridData(res.data.map((row: any) => dataStore.headers.map((header) => row[header])));
-
+                const bilingualHeaders = (res.meta.fields || []).map((h: string) => ({ en: h, fr: h }));
+                dataStore.setHeaders(bilingualHeaders);
+                dataStore.setGridData(
+                    res.data.map((row: any) =>
+                        bilingualHeaders.map((header: any, colIdx: number) => {
+                            const value = row[header.en] ?? '';
+                            return colIdx === 0 ? { en: value, fr: value } : value;
+                        })
+                    )
+                );
                 // default preview of datatable to line graph
                 const categories = dataStore.gridData.map((row) => row[0]);
-                const seriesData = dataStore.headers
+                const seriesData = bilingualHeaders
                     .slice(1)
                     .map((_, colIdx) => dataStore.gridData.map((row) => parseFloat(row[colIdx + 1])));
-                chartStore.setupConfig(
-                    Object.values(dataStore.headers).slice(1),
-                    categories,
-                    seriesData,
-                    dataStore.headers[0] || ''
-                );
+                chartStore.setupConfig(bilingualHeaders.slice(1), categories, seriesData, bilingualHeaders[0]);
 
                 // set a non-empty default chart title
-                chartStore.chartConfig.title.text =
-                    chartStore.defaultTitle || t('HACK.customization.titles.chartTitle');
+                chartStore.chartConfig.title.text = {
+                    en: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'en' }),
+                    fr: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'fr' })
+                };
             },
             error: (err: any) => {
                 console.error('Error parsing file: ', err);
@@ -325,7 +335,7 @@ onMounted(() => {
     } else if (Object.keys(chartStore.chartConfig).length > 0 && !isPieChart) {
         const config = chartStore.chartConfig;
 
-        const headers = [chartStore.chartConfig.xAxis.title.text || ''].concat(config.series.map((s) => s.name));
+        const headers = [config.xAxis.title.text || ''].concat(config.series.map((s) => s.name));
         dataStore.setHeaders(headers);
 
         const categories = config.xAxis?.categories || [];
@@ -384,14 +394,31 @@ const escEditCell = () => {
     editingVal.value = '';
 };
 
-const updateHeader = (headerIdx: number, val: string) => {
+const updateHeader = (headerIdx: number, val: LocalizedString) => {
     chartStore.updateHeader(headerIdx, val);
 };
 
 const updateCell = (rowIdx: number, colIdx: number, val: string) => {
-    dataStore.updateCell(rowIdx, colIdx, val);
+    const cell = dataStore.gridData[rowIdx][colIdx];
+
+    if (colIdx === 0 && typeof cell === 'object') {
+        cell[activeLang.value] = val;
+    } else {
+        dataStore.gridData[rowIdx][colIdx] = val;
+    }
+
+    dataStore.updateCell(rowIdx, colIdx, val, activeLang.value);
     // update chart config with new series value
     chartStore.updateVal(rowIdx, colIdx, val);
+};
+
+const getCellDisplayValue = (rowIdx: number, colIdx: number) => {
+    const cell = dataStore.gridData[rowIdx][colIdx];
+
+    if (colIdx === 0 && typeof cell === 'object') {
+        return cell[activeLang.value];
+    }
+    return cell ?? '';
 };
 
 const handleRowAction = (): void => {

@@ -37,6 +37,10 @@
             </div>
         </div>
 
+        <div v-if="activeSection === 'chartTitles' || activeSection === 'axes'">
+            <LanguageTabs v-model:activeLang="chartStore.activeLang" />
+        </div>
+        
         <!-- Configure chart titles -->
         <template v-if="activeSection === 'chartTitles'">
             <titles-customization />
@@ -111,7 +115,7 @@
             <div class="font-bold mt-6">{{ $t('HACK.preview') }}</div>
             <!-- Preview of chart -->
             <div class="dv-chart-container items-stretch h-full w-full mt-2">
-                <highchart :key="chartStore.refreshKey" :options="chartConfig"></highchart>
+                <highchart :key="chartStore.refreshKey" :options="chartStore.resolvedChartConfig"></highchart>
             </div>
         </div>
     </div>
@@ -128,6 +132,7 @@ import { Validator } from 'jsonschema';
 import { useI18n } from 'vue-i18n';
 import schema from '../../HighchartsSchema.json';
 
+import LanguageTabs from './helpers/language-tabs.vue'
 import TitlesCustomization from './helpers/titles-customization.vue';
 import DataCustomization from './helpers/data-customization.vue';
 import AxesCustomization from './helpers/axes-customization.vue';

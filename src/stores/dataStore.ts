@@ -1,14 +1,21 @@
 import { defineStore } from 'pinia';
 import { HighchartsConfig } from '@/definitions';
+import type { LangId, LocalizedString } from '@/definitions';
 
 export const useDataStore = defineStore('chartData', {
     state: () => ({
-        headers: [] as string[],
+        headers: [] as LocalizedString[],
         gridData: [] as string[][],
         uploaded: false,
-        datatableView: false
+        datatableView: false,
+        uploadedFileLang: 'en' as LangId
     }),
     actions: {
+        /** Set the uploaded file language */
+        setUploadedFileLang(lang: LangId) {
+            this.uploadedFileLang = lang;
+        },
+
         /** Reset store to initial state */
         resetStore(): void {
             this.headers = [];
@@ -18,7 +25,7 @@ export const useDataStore = defineStore('chartData', {
         },
 
         /** Initially set column headers */
-        setHeaders(headers: string[]): void {
+        setHeaders(headers: LocalizedString[]): void {
             this.headers = headers;
         },
 
@@ -40,7 +47,7 @@ export const useDataStore = defineStore('chartData', {
         // extract grid data from highcharts config file
         extractGridData(config: HighchartsConfig): void {
             if (config.series && Array.isArray(config.series)) {
-                const headers: string[] = config.series.map((series) => series.name);
+                const headers: LocalizedString[] = config.series.map((series) => series.name);
                 this.setHeaders(headers);
 
                 const gridData: string[][] = [];
@@ -62,7 +69,7 @@ export const useDataStore = defineStore('chartData', {
                         row.unshift(categories[idx] as string);
                     });
                     // add category header
-                    this.headers.unshift(config.xAxis.title?.text || '');
+                    this.headers.unshift(config.xAxis.title?.text || { en: '', fr: '' });
                 }
 
                 this.setGridData(gridData);
@@ -72,9 +79,13 @@ export const useDataStore = defineStore('chartData', {
         },
 
         /** Update cell value in grid data */
-        updateCell(row: number, col: number, value: string): void {
+        updateCell(row: number, col: number, value: string, lang: LangId): void {
             if (this.gridData[row]) {
-                this.gridData[row][col] = value;
+                if (col === 0) {
+                    this.gridData[row][col][lang] = value;
+                } else {
+                    this.gridData[row][col] = value;
+                }
             }
         },
 
@@ -116,7 +127,7 @@ export const useDataStore = defineStore('chartData', {
 
         /** Add new column to grid data */
         addNewCol(selectedColIdx: string, right: boolean = true): void {
-            const newCol = 'Untitled';
+            const newCol = { en: 'Untitled', fr: 'Sans titre' };
             // determine new position based on insert right/left
             const newIdx = right ? parseInt(selectedColIdx) + 1 : parseInt(selectedColIdx);
             // add new header and empty col of values
