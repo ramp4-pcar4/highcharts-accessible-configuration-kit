@@ -4,24 +4,24 @@ export interface HighchartsConfig {
     };
     lang?: ExportMenuOptions;
     title: {
-        text: string;
+        text: I18nString;
     };
     credits?: {
         enabled: boolean;
     };
     subtitle: {
-        text: string;
+        text: I18nString;
     };
     yAxis: {
         title: {
-            text: string;
+            text: I18nString;
         };
     };
     xAxis: {
         title: {
-            text: string;
+            text: I18nString;
         };
-        categories: (number | string)[];
+        categories: (number | I18nString)[];
     };
     data?: {
         csv: string;
@@ -64,7 +64,7 @@ export interface ExportMenuOptions {
 }
 
 export interface SeriesData {
-    name: string;
+    name: I18nString;
     type: string;
     color?: string;
     colors?: string[];
@@ -82,3 +82,8 @@ export enum CurrentView {
     Template = 'template',
     Customization = 'customization'
 }
+
+export type I18nString = {
+    en: string;
+    fr: string;
+};

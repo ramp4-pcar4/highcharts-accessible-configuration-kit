@@ -106,6 +106,8 @@ const appLang = ref('');
 const saving = ref<boolean>(false);
 const currentView = ref<CurrentView>(CurrentView.Data);
 
+const resolvedChartConfig = chartStore.resolvedChartConfig;
+
 const contextMenuLabels = computed(() => ({
     viewFullscreen: t('HACK.export.viewFullscreen'),
     printChart: t('HACK.export.printChart'),
@@ -135,10 +137,10 @@ if (!props.title) {
         const title = t('HACK.customization.titles.chartTitle');
         if (!chartStore.chartConfig || !chartStore.chartConfig.title) {
             chartStore.chartConfig = chartStore.chartConfig || {};
-            chartStore.chartConfig.title = chartStore.chartConfig.title || { text: '' };
+            chartStore.chartConfig.title = chartStore.chartConfig.title || { text: { en: '', fr: '' } };
         }
-        if (!chartStore.chartConfig.title.text || chartStore.chartConfig.title.text === prevTitle) {
-            chartStore.chartConfig.title.text = title;
+        if (!chartStore.chartConfig.title.text[i18n.locale] || chartStore.chartConfig.title.text[i18n.locale] === prevTitle) {
+            chartStore.chartConfig.title.text[i18n.locale] = title;
         }
         prevTitle = title;
     });
@@ -167,7 +169,7 @@ onMounted(() => {
     // if passed an existing highcharts config as prop, load and jump to datatable view
     if (props.config && Object.keys(props.config).length) {
         chartStore.setChartConfig(props.config);
-        dataStore.extractGridData(chartStore.chartConfig);
+        dataStore.extractGridData(resolvedChartConfig);
         setTimeout(() => {
             dataStore.setDatatableView(true);
         }, 0);
