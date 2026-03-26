@@ -14,17 +14,9 @@
             </h1>
 
             <button
-                @click="changeLang"
-                class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!props.plugin"
-            >
-                {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
-            </button>
-
-            <button
                 @click="emit('cancel')"
                 class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-else
+                v-if="props.plugin"
             >
                 {{ $t('HACK.label.cancel') }}
             </button>

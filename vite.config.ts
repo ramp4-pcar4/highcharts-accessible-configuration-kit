@@ -23,7 +23,7 @@ const baseConfig: UserConfigExport = {
         target: 'esnext'
     },
     server: {
-        open: '/'
+        open: '/index-en.html'
     }
 };
 
