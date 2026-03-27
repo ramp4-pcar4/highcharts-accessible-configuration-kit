@@ -9,10 +9,7 @@ const baseConfig: UserConfigExport = {
     plugins: [
         vue(),
         dsv()
-    ],
-    define: {
-        'process.env': process.env
-    },
+    ],   
     base: './',
     resolve: {
         alias: {
@@ -35,7 +32,7 @@ export default defineConfig(() => {
                 name: 'HighchartsAccessibleConfigurationKit',
                 fileName: 'highcharts-accessible-configuration-kit'
             },
-            rollupOptions: {
+            rolldownOptions: {
                 external: ['vue', 'pinia', 'vue-final-modal', 'vue-papa-parse'],
                 output: {
                     globals: {
@@ -44,7 +41,7 @@ export default defineConfig(() => {
                         'vue-final-modal': 'VueFinalModal',
                         'vue-papa-parse': 'VuePapaParse'
                     },
-                    inlineDynamicImports: true,
+                    codeSplitting: false,
                     dir: 'dist'
                 }
             },
