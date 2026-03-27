@@ -25,7 +25,8 @@ const pinia = createPinia();
 app.use(pinia)
     .use(router)
     .use(i18n)
-    .use(HighchartsVue, { tagName: 'highchart' })
+    // @ts-expect-error see https://github.com/ramp4-pcar4/ramp4-pcar4/issues/2892 for more details on Vite 8 and default imports
+    .use(HighchartsVue.default, { tagName: 'highchart' })
     .use(VuePapaParse)
     .use(ColorPicker)
     .use(VueTippy, {
