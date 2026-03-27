@@ -120,7 +120,7 @@
         <div v-else>
             <div class="font-bold mt-4">{{ $t('HACK.customization.data.colours') }}</div>
             <div class="flex flex-col mt-2 w-1/6">
-                <div class="flex flex-col" v-for="(color, index) in activeSeries?.colors ?? []" :key="index">
+                <div class="flex flex-col" v-for="(color, index) in chartStore.pieBaseColours ?? []" :key="index">
                     <div
                         class="colour-dropdown w-full rounded border border-gray-500 flex items-center justify-between cursor-pointer mb-2"
                         @click="() => (showPieColourPicker[index] = !showPieColourPicker[index])"
@@ -154,13 +154,19 @@
                         </ColorPicker>
                     </div>
                 </div>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mt-2 ml-2 mb-1 mr-2" v-model="chartStore.usePatterns" />
+                    <span class="text-sm md:text-base mt-2">
+                        {{ $t('HACK.customization.data.textures') }}
+                    </span>
+                </label>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from 'vue';
+import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useDataStore } from '../../stores/dataStore';
 import { useChartStore } from '../../stores/chartStore';
 import { chart } from 'highcharts';
@@ -184,6 +190,14 @@ const emit = defineEmits(['loading']);
 
 const dataStore = useDataStore();
 const chartStore = useChartStore();
+
+watch(
+    () => chartStore.usePatterns,
+    () => {
+        chartStore.applyPatterns();
+    }
+);
+
 const chartConfig = computed(() => chartStore.chartConfig);
 
 const activeDataSeries = ref<number>(0);
@@ -255,9 +269,8 @@ const updateColour = (eventData: any) => {
 };
 
 const updatePieColour = (index: number, color: string) => {
-    if (activeSeries.value?.data) {
-        activeSeries.value.data[index].color = color;
-    }
+    chartStore.pieBaseColours[index] = color;
+    chartStore.applyPatterns();
 };
 
 const changeChartType = (updateChart = true) => {

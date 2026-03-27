@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
+import Highcharts from 'highcharts';
+import PatternFill from 'highcharts/modules/pattern-fill';
 import { ExportMenuOptions, HighchartsConfig, SeriesData } from '../definitions';
+import type { PatternObject } from 'highcharts';
 
+PatternFill(Highcharts);
 const chartTemplates: Record<string, string> = {
     area: 'area',
     bar: 'bar',
@@ -21,17 +25,21 @@ export const useChartStore = defineStore('chartProperties', {
         chartConfig: {} as HighchartsConfig,
         selectedHybridSeries: [] as string[],
         defaultColours: [
-            '#2caffe',
-            '#544fc5',
-            '#00e272',
-            '#fe6a35',
-            '#6b8abc',
-            '#d568fb',
-            '#2ee0ca',
-            '#fa4b42',
-            '#feb56a',
-            '#91e8e1'
-        ]
+            '#0072B2',
+            '#E69F00',
+            '#009E73',
+            '#D55E00',
+            '#CC79A7',
+            '#F0E442',
+            '#56B4E9',
+            '#4D4D4D',
+            '#FF6F61',
+            '#6B5B95',
+            '#88B04B',
+            '#F7CAC9'
+        ],
+        usePatterns: true,
+        pieBaseColours: [] as string[]
     }),
 
     actions: {
@@ -44,16 +52,18 @@ export const useChartStore = defineStore('chartProperties', {
             this.chartConfig = {} as HighchartsConfig;
             this.selectedHybridSeries = [];
             this.defaultColours = [
-                '#2caffe',
-                '#544fc5',
-                '#00e272',
-                '#fe6a35',
-                '#6b8abc',
-                '#d568fb',
-                '#2ee0ca',
-                '#fa4b42',
-                '#feb56a',
-                '#91e8e1'
+                '#0072B2',
+                '#E69F00',
+                '#009E73',
+                '#D55E00',
+                '#CC79A7',
+                '#F0E442',
+                '#56B4E9',
+                '#4D4D4D',
+                '#FF6F61',
+                '#6B5B95',
+                '#88B04B',
+                '#F7CAC9'
             ];
         },
 
@@ -297,6 +307,7 @@ export const useChartStore = defineStore('chartProperties', {
                 this.chartConfig.series.forEach((series: SeriesData) => {
                     series.data?.splice(rowIdx, 1);
                 });
+                this.pieBaseColours.splice(rowIdx, 1);
             });
         },
 
@@ -312,13 +323,14 @@ export const useChartStore = defineStore('chartProperties', {
         insertRow(rowIdx: number): void {
             if (this.chartType === 'pie') {
                 const series = this.chartConfig.series[0];
-                const newColor = this.defaultColours[rowIdx - 1];
+                const newColor = this.defaultColours[this.pieBaseColours.length % this.defaultColours.length];
                 (series.data as { name: string; y: number; color: string }[]).splice(rowIdx, 0, {
                     name: '',
                     y: 0,
                     color: newColor
                 });
-                series.colors = [...series.colors, newColor];
+                this.pieBaseColours.splice(rowIdx, 0, newColor);
+                this.applyPatterns();
             } else {
                 this.chartConfig.xAxis.categories.splice(rowIdx, 0, '');
                 this.chartConfig.series.forEach((series: SeriesData) => {
@@ -514,10 +526,70 @@ export const useChartStore = defineStore('chartProperties', {
                     };
                 }
             });
+            const base = currentColours && currentColours.length > 0 ? currentColours : this.defaultColours;
+
+            this.pieBaseColours = Array.from({ length: seriesData.length }, (_, i) => base[i % base.length]);
+            if (this.usePatterns) {
+                this.applyPatterns();
+            }
 
             this.chartConfig.legend = { enabled: false };
         },
+        getDarkerColour(hex: string, factor: number): string {
+            return (
+                '#' +
+                [1, 3, 5]
+                    .map((startIdx) => {
+                        const colorNum = Math.round(parseInt(hex.slice(startIdx, startIdx + 2), 16) * factor);
+                        return colorNum.toString(16).padStart(2, '0');
+                    })
+                    .join('')
+            );
+        },
 
+        getPieColours(colours: string[]): (string | PatternObject)[] {
+            if (!this.usePatterns) return colours;
+            return colours.map((color, i) => ({
+                pattern: {
+                    path: this.getPatternPath(i),
+                    color: this.getDarkerColour(color, 0.8),
+                    backgroundColor: color,
+                    width: 10,
+                    height: 10,
+                    patternTransform: 'scale(1)'
+                }
+            }));
+        },
+        getPatternPath(index: number): string {
+            const patterns = [
+                'M 5 0 L 5 10', //vertical lines
+                'M 0 5 Q 2.5 0 5 5 T 10 5', // waves
+                'M 5 0 L 9 2.5 L 9 7.5 L 5 10 L 1 7.5 L 1 2.5 Z', // hexagons
+                'M 0 0 L 10 10 M 9 -1 L 11 1 M -1 9 L 1 11', // diagonal lines
+                'M 5 0 L 5 10 M 0 5 L 10 5', // cross
+                'M 2 2 m -1 0 a 1 1 0 1 0 2 0 a 1 1 0 1 0 -2 0', // dots
+                'M 0 0 L 5 10 L 10 0', // zigzag
+                'M 0 10 L 10 0 M -1 1 L 1 -1 M 9 11 L 11 9', // diagonals
+                'M 2 5 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0', // circles
+                'M 0 0 L 3 0 L 3 3 L 0 3 Z M 5 5 L 8 5 L 8 8 L 5 8 Z', // checkerboard
+                'M 0 5 L 5 0 L 10 5 M 0 5 L 5 10 L 10 5', // diamonds
+                'M 5 -5 Q 0 -2.5 5 0 T 5 5 T 5 10 T 5 15' // vertical waves
+            ];
+            return patterns[index % patterns.length];
+        },
+        applyPatterns(): void {
+            this.chartConfig.series.forEach((series: SeriesData) => {
+                if (series.type === 'pie' && series.visible !== false) {
+                    const pieColours = this.getPieColours(this.pieBaseColours);
+                    series.data = (series.data as any[]).map((point, i) => ({
+                        ...point,
+                        color: pieColours[i]
+                    }));
+                }
+            });
+
+            this.refreshKey++;
+        },
         /** Update highcharts configuration for hybrid chart */
         updateHybridChart(hybridSeries: string[], hybridType: string): void {
             this.setHybridChartType(hybridType);
