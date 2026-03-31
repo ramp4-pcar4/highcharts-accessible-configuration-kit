@@ -37,3 +37,5 @@ app.use(pinia)
 app.provide('$papa', app.config.globalProperties.$papa);
 
 app.mount('#app');
+
+console.log('I am the node you want')
