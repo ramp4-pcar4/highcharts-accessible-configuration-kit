@@ -94,7 +94,7 @@
                                     @keyup.enter="($event.target as HTMLElement).blur()"
                                 />
                                 <input
-                                    class="ml-auto"
+                                    class="ml-auto align-middle"
                                     type="checkbox"
                                     @click.stop
                                     v-model="selectedCols[colIdx]"
