@@ -25,6 +25,7 @@
         "highcharts-vue": "^2.0.1",
         "jsonschema": "^1.4.1",
         "pinia": "^3.0.3",
+        "ramp-json-editor": "^1.0.3",
         "sass": "^1.80.6",
         "vue": "^3.4.37",
         "vue-accessible-color-picker": "^5.2.0",
@@ -33,7 +34,6 @@
         "vue-papa-parse": "^3.1.0",
         "vue-router": "^4.2.4",
         "vue-tippy": "^6.3.1",
-        "vue3-json-editor": "^1.1.5",
         "vuedraggable": "^4.1.0"
     },
     "devDependencies": {

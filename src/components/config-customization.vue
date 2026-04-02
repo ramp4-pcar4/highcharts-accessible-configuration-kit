@@ -10,20 +10,28 @@
                     class="tab-label cursor-pointer py-2 px-2 flex-1 text-center"
                     tabindex="0"
                     :class="{ 'font-semibold': activeSection === section }"
-                    @click="() => {
-                        activeSection = section;
-                        if (section === 'advanced') {
-                            addAriaLabel();
+                    @click="
+                        () => {
+                            activeSection = section;
+                            if (section === 'advanced') {
+                                addAriaLabel();
+                                updateEditorFromConfig();
+                            }
                         }
-                    }"
-                    @keydown.enter="() => (activeSection = section)"
+                    "
+                    @keydown.enter="
+                        () => {
+                            activeSection = section;
+                            updateEditorFromConfig();
+                        }
+                    "
                 >
                     {{ $t(`HACK.customization.${section}`) }}
-                     <!-- small screen nav bar -->
-                    <div 
-                        class="nav-underline h-1 flex-1 transition-all" 
-                        :class="activeSection === section ? 'bg-black' : 'bg-gray-300'">
-                    </div>
+                    <!-- small screen nav bar -->
+                    <div
+                        class="nav-underline h-1 flex-1 transition-all"
+                        :class="activeSection === section ? 'bg-black' : 'bg-gray-300'"
+                    ></div>
                 </div>
             </div>
             <!-- big screen nav bar -->
@@ -46,7 +54,11 @@
         <template v-else-if="activeSection === 'dataSeries'">
             <div
                 class="flex mt-4 overflow-x-auto"
-                v-if="chartStore.hybridChartType && chartStore.hybridChartType !== chartStore.chartType && hybridDataSeries.length > 0"
+                v-if="
+                    chartStore.hybridChartType &&
+                    chartStore.hybridChartType !== chartStore.chartType &&
+                    hybridDataSeries.length > 0
+                "
             >
                 <data-customization
                     :dataSeries="mainDataSeries"
@@ -79,26 +91,17 @@
         <template v-else-if="activeSection === 'axes'">
             <axes-customization />
         </template>
-
-        <!-- Custom JSON editor -->
+        <!-- RAMP JSON editor -->
         <template v-else>
-            <vue3-json-editor
+            <JsonEditor
                 class="mt-4"
-                v-model="updatedConfig"
-                :mode="'code'"
-                :show-btns="false"
-                :expandedOnStart="true"
-                @has-error="
-                    (err: string) => {
-                        validatorErrors.push(err);
-                    }
-                "
-                @json-change="(newJson: any) => {
-                    validatorErrors = [];
-                    updatedConfig = newJson;
-                    validateConfig();
-                }"
-            </vue3-json-editor>
+                :key="locale"
+                :modelValue="configJson"
+                :lang="locale"
+                :validator="validate"
+                @update:modelValue="onJsonChange"
+                height="60vh"
+            />
             <div v-if="validatorErrors.length">
                 <ul class="list-disc ml-8">
                     <li v-for="(error, idx) in validatorErrors" :key="idx">{{ error }}</li>
@@ -123,14 +126,14 @@ import { useRouter } from 'vue-router';
 import { useChartStore } from '../stores/chartStore';
 import { useSidemenuStore } from '../stores/sidemenuStore';
 import { SeriesData } from '../definitions';
-import { Vue3JsonEditor } from 'vue3-json-editor';
-import { Validator } from 'jsonschema';
 import { useI18n } from 'vue-i18n';
 import schema from '../../HighchartsSchema.json';
 
 import TitlesCustomization from './helpers/titles-customization.vue';
 import DataCustomization from './helpers/data-customization.vue';
 import AxesCustomization from './helpers/axes-customization.vue';
+
+import Ajv from 'ajv';
 
 import Highcharts from 'highcharts';
 import dataModule from 'highcharts/modules/data';
@@ -145,8 +148,9 @@ const chartStore = useChartStore();
 const sidemenuStore = useSidemenuStore();
 const chartConfig = computed(() => chartStore.chartConfig);
 let updatedConfig = ref<any>({});
+const configJson = ref('');
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const router = useRouter();
 
 // add back 'advanced' after json editor implemented
@@ -155,9 +159,10 @@ const sections = ['chartTitles', 'dataSeries', 'axes', 'advanced'];
 const activeSection = ref<string>('chartTitles');
 const loading = ref<boolean>(false);
 
-let highchartsSchema = ref<string>('');
-const validator: Validator = new Validator();
+let highchartsSchema = ref<any>(null);
 const validatorErrors = ref<any>([]);
+const ajv = new Ajv({ allErrors: true });
+const validate = ajv.compile(schema);
 
 const isSmallScreen = ref(false);
 const hidePage = computed(() => {
@@ -180,7 +185,7 @@ onMounted(() => {
     window.addEventListener('resize', checkScreenSize);
     // import highcharts schema for validation
     highchartsSchema.value = schema as any;
-    updatedConfig.value = chartConfig.value; 
+    updatedConfig.value = chartConfig.value;
 });
 
 onBeforeUnmount(() => {
@@ -208,15 +213,33 @@ const hybridDataSeries = computed(() => {
 });
 
 // validate updated highcharts config edited in JSON editor
-const validateConfig = () => {
-    const checkValidation = validator.validate(updatedConfig.value, highchartsSchema.value as any);
-    if (checkValidation.errors.length) {
-        validatorErrors.value = checkValidation.errors;
-        console.error('Validation errors:', checkValidation.errors);
-    } else {
-        // valid JSOn to update chart config
-        chartStore.setChartConfig(updatedConfig.value);
+const onJsonChange = (newJson: string) => {
+    let parsed: any;
+
+    try {
+        parsed = JSON.parse(newJson);
+    } catch (error: any) {
+        validatorErrors.value = [error.message];
+        console.error('JSON parse error:', error);
+        return;
     }
+
+    // schema validation
+    if (!validate(parsed)) {
+        validatorErrors.value = validate.errors?.map((err) => `${err.dataPath}: ${err.message}`) ?? [];
+        console.error('Validation errors:', validatorErrors.value);
+        return;
+    }
+
+    validatorErrors.value = [];
+
+    if (JSON.stringify(parsed) === JSON.stringify(updatedConfig.value)) {
+        return;
+    }
+
+    // valid JSOn to update chart config
+    updatedConfig.value = parsed;
+    chartStore.setChartConfig(parsed);
 };
 
 const addAriaLabel = () => {
@@ -227,6 +250,11 @@ const addAriaLabel = () => {
         }
     }, 0);
 };
+
+const updateEditorFromConfig = () => {
+    updatedConfig.value = chartConfig.value;
+    configJson.value = JSON.stringify(updatedConfig.value, null, 2);
+};
 </script>
 
 <style lang="scss" scoped>
@@ -234,8 +262,7 @@ const addAriaLabel = () => {
     width: 98%;
 }
 
-:deep(.jsoneditor-vue) {
-    height: 60vh;
+:deep(.json-editor) {
     resize: vertical;
     overflow: auto;
     min-height: 20vh;
@@ -246,20 +273,9 @@ const addAriaLabel = () => {
     display: none;
 }
 
-:deep(.jsoneditor-poweredBy), .nav-underline {
+:deep(.jsoneditor-poweredBy),
+.nav-underline {
     display: none;
-}
-
-:deep(.ace-jsoneditor .ace_text-layer) {
-    color: #000;
-}
-
-:deep(.ace-jsoneditor .ace_string) {
-    color: #006400;
-}
-
-:deep(.ace-jsoneditor .ace_constant.ace_numeric) {
-    color: #8B0000;
 }
 
 @media (max-width: 700px) {
@@ -276,7 +292,7 @@ const addAriaLabel = () => {
     }
 
     .nav-underline {
-        display: flex;  
+        display: flex;
         align-items: stretch;
     }
 }
@@ -293,8 +309,8 @@ const addAriaLabel = () => {
 
     .tab-label {
         padding-left: 1rem;
-        padding-right: 1rem;  
-        align-self: center; 
+        padding-right: 1rem;
+        align-self: center;
     }
 }
 </style>
