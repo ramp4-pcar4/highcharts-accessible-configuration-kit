@@ -72,20 +72,20 @@
                 >
                     <div
                         v-for="(series, index) in chartConfig.series"
-                        :key="series.name"
+                        :key="series.name[activeLang]"
                         class="p-2 cursor-pointer hover:bg-gray-200"
-                        @click="toggleHybridSeries(series.name)"
+                        @click="toggleHybridSeries(series.name[activeLang])"
                     >
                         <input
                             type="checkbox"
                             :value="index"
-                            :checked="selectedHybridSeries.includes(series.name)"
+                            :checked="selectedHybridSeries.includes(series.name[activeLang])"
                             :disabled="
                                 selectedHybridSeries.length >= chartConfig.series.length - 1 &&
-                                !selectedHybridSeries.includes(series.name)
+                                !selectedHybridSeries.includes(series.name[activeLang])
                             "
                         />
-                        <span class="ml-2">{{ series.name }}</span>
+                        <span class="ml-2">{{ series.name[activeLang] }}</span>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <div v-if="!loading">
             <div class="font-bold mt-6">{{ $t('HACK.preview') }}</div>
             <div class="dv-chart-container items-stretch h-full w-full mt-2">
-                <highchart :key="chartStore.refreshKey" :options="chartConfig"></highchart>
+                <highchart :key="chartStore.refreshKey" :options="chartStore.resolvedChartConfig"></highchart>
             </div>
         </div>
 
@@ -149,6 +149,7 @@ const props = defineProps({
 const chartStore = useChartStore();
 const sidemenuStore = useSidemenuStore();
 const chartConfig = computed(() => chartStore.chartConfig);
+const activeLang = computed(() => chartStore.activeLang);
 
 const dataStore = useDataStore();
 const seriesNames = computed(() => Object.values(dataStore.headers).slice(1));
@@ -228,7 +229,6 @@ onMounted(() => {
     const seriesData = dataStore.headers
         .slice(1)
         .map((_, colIdx) => dataStore.gridData.map((row) => parseFloat(row[colIdx + 1])));
-
 });
 
 onBeforeUnmount(() => {
@@ -239,7 +239,11 @@ onBeforeUnmount(() => {
 const handleChartSelection = (): void => {
     loading.value = true;
     const otherSeries = enableMultiselect.value ? selectedHybridSeries.value : [seriesNames.value[1]];
-    const seriesToUpdate = seriesNames.value.filter((name) => !otherSeries.includes(name));
+    const seriesToUpdate = seriesNames.value.filter(
+        (name) =>
+            typeof name !== 'string' &&
+            !otherSeries.map((s) => (typeof s !== 'string' ? s[activeLang.value] : s)).includes(name[activeLang.value])
+    );
 
     if (chartType.value === 'pie') {
         hybridChartType.value = 'none';

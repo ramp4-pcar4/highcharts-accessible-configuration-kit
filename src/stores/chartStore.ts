@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import Highcharts from 'highcharts';
 import PatternFill from 'highcharts/modules/pattern-fill';
 import { ExportMenuOptions, HighchartsConfig, SeriesData } from '../definitions';
+import type { LangId, LocalizedString } from '../definitions';
 import type { PatternObject } from 'highcharts';
 
 PatternFill(Highcharts);
@@ -39,8 +40,28 @@ export const useChartStore = defineStore('chartProperties', {
             '#F7CAC9'
         ],
         usePatterns: true,
-        pieBaseColours: [] as string[]
+        pieBaseColours: [] as string[],
+        activeLang: 'en' as LangId,
+        isBilingual: true,
+        showLangWarning: true
     }),
+    getters: {
+        resolvedChartConfig(): HighchartsConfig {
+            const activeLang = this.activeLang;
+            const config = JSON.parse(JSON.stringify(this.chartConfig));
+
+            const resolve = (value: any): any => {
+                if (value === null || typeof value !== 'object') return value;
+                if ('en' in value && 'fr' in value) return value[activeLang];
+                const copy: any = Array.isArray(value) ? [] : {};
+                for (const key in value) {
+                    copy[key] = resolve(value[key]);
+                }
+                return copy;
+            };
+            return resolve(config);
+        }
+    },
 
     actions: {
         /** Reset store to initial state */
@@ -65,6 +86,11 @@ export const useChartStore = defineStore('chartProperties', {
                 '#88B04B',
                 '#F7CAC9'
             ];
+        },
+
+        /** Set active language */
+        setActiveLang(lang: LangId) {
+            this.activeLang = lang;
         },
 
         /** Set highcharts type */
@@ -99,18 +125,23 @@ export const useChartStore = defineStore('chartProperties', {
             this.chartConfig = {
                 ...chartConfig,
                 title: {
-                    text: chartConfig.title?.text || ''
+                    text: this.toBilingual(chartConfig.title?.text ?? '')
                 },
                 subtitle: {
-                    text: chartConfig.subtitle?.text || ''
+                    text: this.toBilingual(chartConfig.subtitle?.text ?? '')
                 },
                 xAxis: {
                     ...chartConfig.xAxis,
                     categories: Array.isArray(chartConfig.xAxis?.categories)
-                        ? chartConfig.xAxis.categories
-                        : new Array(chartConfig.series?.[0]?.data?.length || 0).fill(''),
+                        ? chartConfig.xAxis.categories.map((cat) =>
+                              typeof cat === 'string' ? { en: cat, fr: cat } : cat
+                          )
+                        : Array.from({ length: chartConfig.series?.[0]?.data?.length || 0 }, () => ({
+                              en: '',
+                              fr: ''
+                          })),
                     title: {
-                        text: chartConfig.xAxis?.title?.text || ''
+                        text: this.toBilingual(chartConfig.xAxis?.title?.text ?? '')
                     }
                 },
                 yAxis: Array.isArray(chartConfig.yAxis)
@@ -118,11 +149,12 @@ export const useChartStore = defineStore('chartProperties', {
                     : {
                           ...chartConfig.yAxis,
                           title: {
-                              text: chartConfig.yAxis?.title?.text || ''
+                              text: this.toBilingual(chartConfig.yAxis?.title?.text ?? '')
                           }
                       },
                 series: ((chartConfig.series as SeriesData[]) || []).map((series) => ({
                     ...series,
+                    name: this.toBilingual(series.name ?? ''),
                     type: series.type || '',
                     color: series.color || '',
                     dashStyle: series.dashStyle || '',
@@ -152,7 +184,7 @@ export const useChartStore = defineStore('chartProperties', {
                 const values = lines[i].split(';').map((val: string) => val.trim());
                 const seriesName = values[0];
                 seriesData.push({
-                    name: seriesName,
+                    name: this.toBilingual(seriesName),
                     data: values.slice(1).map((val: string) => parseInt(val)),
                     type: 'line',
                     color: this.defaultColours[i - 1],
@@ -165,9 +197,9 @@ export const useChartStore = defineStore('chartProperties', {
 
             // fill in extracted values (catos, x-axis title, series data) into chart config
             this.chartConfig.xAxis = {
-                categories: categories,
+                categories: categories.map((cat) => ({ en: String(cat), fr: String(cat) })),
                 title: {
-                    text: header[0] || ''
+                    text: { en: header[0] || '', fr: header[0] || '' }
                 }
             };
             this.chartConfig.series = seriesData;
@@ -175,27 +207,39 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Set default highcharts config */
-        setupConfig(seriesNames: string[], cats: string[], seriesData: number[][], categoryLabel = ''): void {
+        setupConfig(
+            seriesNames: LocalizedString[],
+            cats: string[],
+            seriesData: number[][],
+            categoryLabel = { en: '', fr: '' }
+        ): void {
             this.chartConfig = {
                 title: {
-                    text: ''
+                    text: { en: '', fr: '' }
                 },
                 subtitle: {
-                    text: ''
+                    text: { en: '', fr: '' }
                 },
                 xAxis: {
-                    categories: cats,
+                    categories: cats.map((cat: any) =>
+                        typeof cat === 'string'
+                            ? { en: cat, fr: cat }
+                            : {
+                                  en: cat.en || '',
+                                  fr: cat.fr || ''
+                              }
+                    ),
                     title: {
                         text: categoryLabel
                     }
                 },
                 yAxis: {
                     title: {
-                        text: ''
+                        text: { en: '', fr: '' }
                     }
                 },
                 series: seriesNames.map((name, index) => ({
-                    name,
+                    name: name,
                     type: 'line',
                     color: this.defaultColours[index],
                     dashStyle: 'solid',
@@ -211,8 +255,8 @@ export const useChartStore = defineStore('chartProperties', {
         /** Update highcharts configuration for chart type */
         updateConfig(
             type: string,
-            series: string[],
-            headers: string[],
+            series: LocalizedString[],
+            headers: LocalizedString[],
             gridData: string[][],
             selectedSeries?: string,
             currentColours?: string[]
@@ -343,7 +387,7 @@ export const useChartStore = defineStore('chartProperties', {
         insertColumn(colIdx: number): void {
             const defaultData = new Array(this.chartConfig.xAxis.categories.length).fill(0);
             const newSeries: SeriesData = {
-                name: 'Untitled',
+                name: { en: 'Untitled', fr: 'Sans titre' },
                 type: this.chartType,
                 color: this.defaultColours[colIdx],
                 dashStyle: 'solid',
@@ -356,11 +400,17 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update header (series names) value */
-        updateHeader(colIdx: number, name: string): void {
+        updateHeader(colIdx: number, name: LocalizedString): void {
             if (colIdx === 0) {
                 this.chartConfig.xAxis.title.text = name;
-            } else {
-                (this.chartConfig.series as SeriesData[])[colIdx - 1].name = name;
+            } else if (Array.isArray(this.chartConfig.series)) {
+                const series = this.chartConfig.series[colIdx - 1];
+                if (!series) return;
+
+                if (typeof series.name === 'string') {
+                    series.name = { en: series.name, fr: series.name };
+                }
+                series.name[this.activeLang] = name[this.activeLang];
             }
         },
 
@@ -368,8 +418,17 @@ export const useChartStore = defineStore('chartProperties', {
         updateVal(rowIdx: number, colIdx: number, val: string): void {
             if (this.chartConfig.series[0].type === 'pie') {
                 if (colIdx === 0) {
-                    this.chartConfig.series[0].data[rowIdx].name = val;
-                    this.chartConfig.xAxis.categories[rowIdx] = val;
+                    const dataPoint = this.chartConfig.series[0].data[rowIdx];
+                    if (typeof dataPoint.name === 'string') {
+                        dataPoint.name = { en: dataPoint.name, fr: dataPoint.name };
+                    }
+                    dataPoint.name[this.activeLang] = val;
+
+                    const cat = this.chartConfig.xAxis.categories[rowIdx];
+                    if (typeof cat === 'string') {
+                        this.chartConfig.xAxis.categories[rowIdx] = { en: cat, fr: cat };
+                    }
+                    (this.chartConfig.xAxis.categories[rowIdx] as any)[this.activeLang] = val;
                 } else if (colIdx === 1) {
                     this.chartConfig.series[0].data[rowIdx].y = parseFloat(val);
                 }
@@ -377,15 +436,19 @@ export const useChartStore = defineStore('chartProperties', {
                 if (colIdx) {
                     this.chartConfig.series[colIdx - 1].data[rowIdx] = parseInt(val);
                 } else {
-                    this.chartConfig.xAxis.categories[rowIdx] = val;
+                    const cat = this.chartConfig.xAxis.categories[rowIdx];
+                    if (typeof cat === 'string') {
+                        this.chartConfig.xAxis.categories[rowIdx] = { en: cat, fr: cat };
+                    }
+                    (this.chartConfig.xAxis.categories[rowIdx] as any)[this.activeLang] = val;
                 }
             }
         },
 
         /** Update highcharts configuration for line chart */
-        updateLineChart(seriesNames: string[], seriesData: number[][]): void {
+        updateLineChart(seriesNames: LocalizedString[], seriesData: number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'line',
@@ -400,9 +463,9 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for bar chart */
-        updateBarChart(seriesNames: string[], seriesData: number[][]): void {
+        updateBarChart(seriesNames: LocalizedString[], seriesData: number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'bar',
@@ -419,9 +482,9 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for scatter plot */
-        updateScatterPlot(seriesNames: string[], seriesData: { x: number; y: number }[] | number[][]): void {
+        updateScatterPlot(seriesNames: LocalizedString[], seriesData: { x: number; y: number }[] | number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'scatter',
@@ -445,9 +508,9 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for column chart */
-        updateColumnChart(seriesNames: string[], seriesData: number[][]): void {
+        updateColumnChart(seriesNames: LocalizedString[], seriesData: number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'column',
@@ -464,9 +527,9 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for area chart */
-        updateAreaChart(seriesNames: string[], seriesData: number[][]): void {
+        updateAreaChart(seriesNames: LocalizedString[], seriesData: number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'area',
@@ -481,9 +544,9 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for spline chart */
-        updateSplineChart(seriesNames: string[], seriesData: number[][]): void {
+        updateSplineChart(seriesNames: LocalizedString[], seriesData: number[][]): void {
             this.chartConfig.series = this.chartConfig.series.map((series, index) =>
-                seriesNames.includes(series.name)
+                seriesNames.some((name) => name[this.activeLang] === series.name[this.activeLang])
                     ? {
                           name: series.name,
                           type: 'spline',
@@ -499,7 +562,7 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update highcharts configuration for pie chart */
         updatePieChart(
-            seriesNames: string[],
+            seriesNames: LocalizedString[],
             seriesIndex: number,
             seriesData: { name: string; y: number }[],
             currentColours?: string[]
@@ -594,8 +657,8 @@ export const useChartStore = defineStore('chartProperties', {
         updateHybridChart(hybridSeries: string[], hybridType: string): void {
             this.setHybridChartType(hybridType);
             this.chartConfig.series.forEach((series, index) => {
-                if (hybridSeries.includes(series.name)) {
-                    const isHybrid = hybridSeries.includes(series.name);
+                const isHybrid = hybridSeries.includes(series.name[this.activeLang]);
+                if (isHybrid) {
                     // TODO: may need to adjust based on what hybrid options become available in the future
                     const baseConfig = {
                         name: series.name,
@@ -611,12 +674,19 @@ export const useChartStore = defineStore('chartProperties', {
                 }
             });
         },
-        setSelectedHybridSeries(series: string[]) {
+        setSelectedHybridSeries(series: any) {
             this.selectedHybridSeries = series;
         },
 
         getSelectedHybridSeries() {
             return this.selectedHybridSeries;
+        },
+
+        toBilingual(value: string | { en?: string; fr?: string }): LocalizedString {
+            if (typeof value === 'string') {
+                return { en: value, fr: value };
+            }
+            return { en: value.en || '', fr: value.fr || '' };
         }
     }
 });
