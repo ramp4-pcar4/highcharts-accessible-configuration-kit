@@ -15,6 +15,9 @@ import 'tippy.js/dist/backdrop.css';
 import ColorPicker from 'vue-accessible-color-picker';
 import 'vue-accessible-color-picker/styles';
 
+import JsonEditor from 'ramp-json-editor';
+import 'ramp-json-editor/dist/ramp-json-editor.css';
+
 import { createVfm } from 'vue-final-modal';
 import 'vue-final-modal/style.css';
 const vfm = createVfm();
@@ -33,7 +36,8 @@ app.use(pinia)
         directive: 'tippy',
         component: 'tippy'
     })
-    .use(vfm);
+    .use(vfm)
+    .use(JsonEditor);
 
 app.provide('$papa', app.config.globalProperties.$papa);
 
