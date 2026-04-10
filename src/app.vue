@@ -1,10 +1,10 @@
 <template>
     <div id="highcharts-editor-app" class="highcharts-app-container border border-gray-500">
         <header
-            class="editor-header h-[59px] top-0 flex border-b border-black bg-gray-200 py-2 px-2 justify-between z-40"
+            class="editor-header h-[59px] top-0 flex border-b border-black bg-gray-200 py-2 px-2 z-40"
             :class="{ sticky: !props.plugin }"
         >
-            <h1 class="w-mobile-full flex items-center truncate">
+            <h1 class="w-mobile-full flex items-center truncate pr-2.5">
                 <span class="font-semibold text-lg m-1" v-if="isMobile">
                     {{ $t('HACK.HACK') }}
                 </span>
@@ -13,34 +13,38 @@
                 </span>
             </h1>
 
-            <button
-                @click="changeLang"
-                class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="!wetTemplate"
-            >
-                {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
-            </button>
+            <div class="ml-auto flex items-center gap-1">
+                <!-- Export button moved to header for standalone HACK -->
+                <ChartExport v-if="!props.plugin" :plugin="props.plugin" :compact-header="isCompactScreen" />
+                <button
+                    @click="changeLang"
+                    class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
+                    v-if="!wetTemplate"
+                >
+                    {{ appLang === 'en' ? $t('HACK.lang.fr') : $t('HACK.lang.en') }}
+                </button>
 
-            <button
-                @click="emit('cancel')"
-                class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
-                v-if="props.plugin"
-            >
-                {{ $t('HACK.label.cancel') }}
-            </button>
+                <button
+                    @click="emit('cancel')"
+                    class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
+                    v-if="props.plugin"
+                >
+                    {{ $t('HACK.label.cancel') }}
+                </button>
 
-            <button
-                @click="saveChanges"
-                class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
-                :class="{ 'disabled hover:bg-gray-400': dataStore.datatableView === false }"
-                :disabled="dataStore.datatableView === false"
-                v-if="props.plugin"
-            >
-                {{ $t('HACK.saveChanges') }}
-                <span v-if="saving" class="align-middle inline-block px-1">
-                    <Spinner size="16px" color="#009cd1" class="ml-1 mb-1"></Spinner>
-                </span>
-            </button>
+                <button
+                    @click="saveChanges"
+                    class="bg-black border rounded text-sm md:text-base border-black text-white hover:bg-gray-900 font-bold p-2"
+                    :class="{ 'disabled hover:bg-gray-400': dataStore.datatableView === false }"
+                    :disabled="dataStore.datatableView === false"
+                    v-if="props.plugin"
+                >
+                    {{ $t('HACK.saveChanges') }}
+                    <span v-if="saving" class="align-middle inline-block px-1">
+                        <Spinner size="16px" color="#009cd1" class="ml-1 mb-1"></Spinner>
+                    </span>
+                </button>
+            </div>
         </header>
 
         <div class="items-stretch flex">
@@ -82,6 +86,7 @@ import Spinner from './components/helpers/spinner.vue';
 import DataSection from '@/components/data-section.vue';
 import ChartSelection from '@/components/chart-selection.vue';
 import ConfigCustomization from '@/components/config-customization.vue';
+import ChartExport from './components/helpers/chart-export.vue';
 const props = defineProps({
     plugin: {
         type: Boolean
@@ -118,9 +123,11 @@ const activeLang = computed(() => chartStore.activeLang);
 const contextMenuLabels = computed(() => buildContextMenuLabels(t, activeLang.value));
 
 const isMobile = ref(false);
+const isCompactScreen = ref(false);
 
 const checkScreenSize = () => {
     isMobile.value = window.innerWidth < 1024;
+    isCompactScreen.value = window.innerWidth < 640;
 };
 
 const getTemplate = (): Component => {
