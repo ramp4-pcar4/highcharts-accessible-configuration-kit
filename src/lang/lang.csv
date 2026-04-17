@@ -38,6 +38,7 @@ HACK.data.paste.label,Use pasted data,1,Utiliser des données collées,1
 HACK.data.paste.description,"Copy data from a CSV or Excel file, then paste in the box below. Please use comma separated values to best avoid errors. Note that the first row should correspond to axis/category titles.",1,"Copiez les données d'un fichier CSV ou Excel, puis collez-les dans le champ ci-dessous. Veuillez utiliser des valeurs séparées par des virgules pour éviter les erreurs. Notez que la premiÃ¨re ligne doit correspondre aux titres des axes/catégories.",1
 HACK.data.paste.placeholder,Paste data here,1,Collez les données ici,1
 HACK.data.modify,"Here, you can modify your dataset. The default standard is that the first column will be reserved for category labels.",1,"Ici, vous pouvez modifier votre ensemble de données. Par défaut, la première colonne est réservée aux libellés des catégories.",1
+HACK.export,Export,1,Exporter,0
 HACK.export.viewFullscreen,View in full screen,1,Plein Écran,1
 HACK.export.printChart,Print chart,1,Imprimer,1
 HACK.export.downloadPNG,Download PNG,1,Télécharger PNG,1
