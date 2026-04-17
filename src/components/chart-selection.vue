@@ -228,7 +228,7 @@ onMounted(() => {
     const categories = dataStore.gridData.map((row) => row[0]);
     const seriesData = dataStore.headers
         .slice(1)
-        .map((_, colIdx) => dataStore.gridData.map((row) => parseFloat(row[colIdx + 1])));
+        .map((_, colIdx) => dataStore.gridData.map((row) => parseFloat(row[colIdx + 1] as string)));
 });
 
 onBeforeUnmount(() => {

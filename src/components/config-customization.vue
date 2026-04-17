@@ -133,7 +133,7 @@ import { SeriesData } from '../definitions';
 import { useI18n } from 'vue-i18n';
 import schema from '../../HighchartsSchema.json';
 
-import LanguageTabs from './helpers/language-tabs.vue'
+import LanguageTabs from './helpers/language-tabs.vue';
 import TitlesCustomization from './helpers/titles-customization.vue';
 import DataCustomization from './helpers/data-customization.vue';
 import AxesCustomization from './helpers/axes-customization.vue';
@@ -198,13 +198,7 @@ onBeforeUnmount(() => {
 });
 
 const mainDataSeries = computed(() => {
-    if (Array.isArray(chartConfig.value.series)) {
-        return (chartConfig.value.series as SeriesData[])
-            .filter((s) => s.type === chartStore.chartType)
-            .map((s) => s.name);
-    } else {
-        return [chartConfig.value.series[0].name];
-    }
+    return chartStore.normalizedSeries.filter((s) => s.type === chartStore.chartType).map((s) => s.name);
 });
 
 const hybridDataSeries = computed(() => {

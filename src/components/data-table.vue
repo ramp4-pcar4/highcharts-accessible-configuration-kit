@@ -87,7 +87,7 @@
                                     type="text"
                                     v-model="(headers[colIdx] as { [key: string]: string })[activeLang]"
                                     :aria-label="$t('HACK.datatable.colHeaders')"
-                                    :style="{ width: Math.max(header.length + 2, 8) + 'ch' }"
+                                    :style="{ width: Math.max(header[activeLang].length + 2, 8) + 'ch' }"
                                     :readonly="editingHeader !== colIdx"
                                     @input="updateHeader(colIdx, headers[colIdx])"
                                     @focus="editColHeader(colIdx)"
@@ -125,7 +125,7 @@
                             class="grid-cell border border-gray-500 p-2 text-left align-middle"
                             v-for="(value, colIdx) in row"
                             :key="colIdx"
-                            @click="editCell(rowIdx, colIdx, value)"
+                            @click="editCell(rowIdx, colIdx, value as string)"
                         >
                             <div class="flex items-center w-full" style="cursor: text">
                                 <input
@@ -145,7 +145,7 @@
                                     }"
                                     :readonly="editingCell.rowIdx !== rowIdx || editingCell.colIdx !== colIdx"
                                     @input="updateCell(rowIdx, colIdx, ($event.target as HTMLInputElement).value)"
-                                    @focus="editCell(rowIdx, colIdx, getCellDisplayValue(rowIdx, colIdx))"
+                                    @focus="editCell(rowIdx, colIdx, getCellDisplayValue(rowIdx, colIdx) as string)"
                                     @blur="escEditCell"
                                     @keyup.enter="($event.target as HTMLElement).blur()"
                                 />
@@ -205,7 +205,7 @@ import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
 import { useI18n } from 'vue-i18n';
 import { CurrentView } from '../definitions';
-import type { LocalizedString } from '../definitions';
+import type { GridRow, LocalizedString, SeriesData } from '../definitions';
 
 import Highcharts from 'highcharts';
 import dataModule from 'highcharts/modules/data';
@@ -252,8 +252,8 @@ const editingHeader = ref(-1);
 const editingCell = ref({ rowIdx: -1, colIdx: -1 });
 const editingVal = ref('');
 
-let selectedRows = reactive({});
-let selectedCols = reactive({});
+const selectedRows = reactive<boolean[]>([]);
+const selectedCols = reactive<boolean[]>([]);
 const rowAction = ref<string>('');
 const colAction = ref<string>('');
 const allRowsSelected = computed(
@@ -305,13 +305,16 @@ onMounted(() => {
             header: true, // first row headers
             skipEmptyLines: true,
             complete: (res: any) => {
-                const bilingualHeaders = (res.meta.fields || []).map((h: string) => ({ en: h, fr: h }));
+                const bilingualHeaders: LocalizedString[] = (res.meta.fields || []).map((h: LocalizedString) => ({
+                    en: h,
+                    fr: h
+                }));
                 dataStore.setHeaders(bilingualHeaders);
                 dataStore.setGridData(
-                    res.data.map((row: any) =>
-                        bilingualHeaders.map((header: any, colIdx: number) => {
+                    res.data.map((row: Record<string, string>) =>
+                        bilingualHeaders.map((header, colIdx) => {
                             const value = row[header.en] ?? '';
-                            return colIdx === 0 ? { en: value, fr: value } : value;
+                            return colIdx === 0 ? ({ en: value, fr: value } as LocalizedString) : value;
                         })
                     )
                 );
@@ -319,7 +322,7 @@ onMounted(() => {
                 const categories = dataStore.gridData.map((row) => row[0]);
                 const seriesData = bilingualHeaders
                     .slice(1)
-                    .map((_, colIdx) => dataStore.gridData.map((row) => parseFloat(row[colIdx + 1])));
+                    .map((_, colIdx) => dataStore.gridData.map((row) => Number(row[colIdx + 1])));
                 chartStore.setupConfig(bilingualHeaders.slice(1), categories, seriesData, bilingualHeaders[0]);
 
                 // set a non-empty default chart title
@@ -334,18 +337,19 @@ onMounted(() => {
         });
     } else if (Object.keys(chartStore.chartConfig).length > 0 && !isPieChart) {
         const config = chartStore.chartConfig;
+        const configSeries = chartStore.normalizedSeries as Array<SeriesData & { data: number[] }>;
 
-        const headers = [config.xAxis.title.text || ''].concat(config.series.map((s) => s.name));
+        const headers = [config.xAxis.title.text || ''].concat(configSeries.map((s) => s.name));
         dataStore.setHeaders(headers);
 
         const categories = config.xAxis?.categories || [];
-        const seriesData = config.series.map((s) => s.data || []);
+        const seriesData = configSeries.map((s) => s.data || []);
 
         const gridData = categories.map((cat, rowIdx) => {
             return [cat].concat(seriesData.map((s) => s[rowIdx] ?? ''));
         });
 
-        dataStore.setGridData(gridData);
+        dataStore.setGridData(gridData as GridRow[]);
     } else {
         document.addEventListener('click', handleMouseClick);
     }
@@ -422,25 +426,24 @@ const getCellDisplayValue = (rowIdx: number, colIdx: number) => {
 };
 
 const handleRowAction = (): void => {
-    const rowIdxs = Object.keys(selectedRows).filter((idx) => selectedRows[idx]);
+    const rowIdxs = selectedRows.map((v, idx) => (v ? idx : -1)).filter((idx) => idx !== -1);
     switch (rowAction.value) {
         case rowActions.delete: {
             dataStore.deleteRows(rowIdxs);
-            chartStore.deleteRow(rowIdxs.map((rowIdx) => parseInt(rowIdx)));
-            selectedRows = reactive({}); // reset the selections
+            chartStore.deleteRow(rowIdxs);
+            selectedRows.length = 0; // reset the selections
             break;
         }
         case rowActions.insertBelow: {
             dataStore.addNewRow(rowIdxs[0], true);
-            chartStore.insertRow(parseInt(rowIdxs[0]) + 1);
+            chartStore.insertRow(rowIdxs[0] + 1);
             break;
         }
         case rowActions.insertAbove: {
             dataStore.addNewRow(rowIdxs[0], false);
-            chartStore.insertRow(parseInt(rowIdxs[0]));
-            const newIdx = (parseInt(rowIdxs[0]) + 1).toString();
+            chartStore.insertRow(rowIdxs[0]);
             selectedRows[rowIdxs[0]] = false;
-            selectedRows[newIdx] = true; //reselect the previous selected row
+            selectedRows[rowIdxs[0] + 1] = true; // reselect the previous selected row
             break;
         }
     }
@@ -448,25 +451,26 @@ const handleRowAction = (): void => {
 };
 
 const handleColAction = (): void => {
-    const colIdxs = Object.keys(selectedCols).filter((idx) => selectedCols[idx]);
+    // const colIdxs = Object.keys(selectedCols).filter((idx) => selectedCols[idx]);
+    const colIdxs = selectedCols.map((v, idx) => (v ? idx : -1)).filter((idx) => idx !== -1);
+
     switch (colAction.value) {
         case colActions.delete: {
             dataStore.deleteCols(colIdxs);
-            chartStore.deleteColumn(colIdxs.map((colIdx) => parseInt(colIdx)));
-            selectedCols = reactive({}); // reset the selections
+            chartStore.deleteColumn(colIdxs);
+            selectedCols.length = 0; // reset the selections
             break;
         }
         case colActions.insertRight: {
             dataStore.addNewCol(colIdxs[0], true);
-            chartStore.insertColumn(parseInt(colIdxs[0]) + 1);
+            chartStore.insertColumn(colIdxs[0] + 1);
             break;
         }
         case colActions.insertLeft: {
             dataStore.addNewCol(colIdxs[0], false);
-            chartStore.insertColumn(parseInt(colIdxs[0]));
-            const newIdx = (parseInt(colIdxs[0]) + 1).toString();
+            chartStore.insertColumn(colIdxs[0]);
             selectedCols[colIdxs[0]] = false;
-            selectedCols[newIdx] = true; //reselect the previous selected col
+            selectedCols[colIdxs[0] + 1] = true; //reselect the previous selected col
             break;
         }
     }
