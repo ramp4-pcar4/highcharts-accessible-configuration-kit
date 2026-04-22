@@ -157,9 +157,17 @@ if (!props.title) {
     });
 }
 
-watch(activeLang, () => {
-    // set context menu labels based on the current language
+watch(i18n.locale, () => {
+    //set context menu language in standalone mode
     chartStore.setMenuOptions(contextMenuLabels.value);
+    chartStore.syncHighchartsLang(t, i18n.locale.value as LangId);
+    chartStore.refreshKey += 1;
+});
+
+watch(activeLang, () => {
+    //set context menu language in plugin mode
+    chartStore.setMenuOptions(contextMenuLabels.value);
+    chartStore.syncHighchartsLang(t, activeLang.value);
     chartStore.refreshKey += 1;
 });
 
@@ -167,10 +175,13 @@ onMounted(() => {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     appLang.value = i18n.locale.value as LangId;
-    // set locale only when standalone usage
+    //set locale only when standalone usage
     if (!props.plugin) {
         i18n.locale.value = appLang.value;
     }
+
+     chartStore.setMenuOptions(contextMenuLabels.value);
+     chartStore.syncHighchartsLang(t, appLang.value as LangId);
 
     // clear store state (required for shared store state for multi-instance charts)
     if (props.plugin) {

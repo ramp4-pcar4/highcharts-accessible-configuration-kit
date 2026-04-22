@@ -4,8 +4,146 @@ import PatternFill from 'highcharts/modules/pattern-fill';
 import { ExportMenuOptions, HighchartsConfig, SeriesData } from '../definitions';
 import type { LangId, LocalizedString } from '../definitions';
 import type { PatternObject } from 'highcharts';
+import exporting from 'highcharts/modules/exporting';
+import exportData from 'highcharts/modules/export-data';
+import accessibility from 'highcharts/modules/accessibility';
 
 PatternFill(Highcharts);
+exporting(Highcharts);
+exportData(Highcharts);
+accessibility(Highcharts);
+
+const raw: Record<string, Record<string, string>> = {
+    en: {
+        chartContainerLabel: 'Chart : {title}',
+        credits: 'Chart credits: {creditsStr}',
+
+        'series.summary.line':
+            '{series.name}, line {seriesNumber} of {chart.series.length} with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.bar':
+            '{series.name}, bar series {seriesNumber} of {chart.series.length} with {series.points.length} {#eq series.points.length 1}bar{else}bars{/eq}.',
+
+        'series.summary.column':
+            '{series.name}, bar series {seriesNumber} of {chart.series.length} with {series.points.length} {#eq series.points.length 1}bar{else}bars{/eq}.',
+
+        'series.summary.pie':
+            '{series.name}, pie {seriesNumber} of {chart.series.length} with {series.points.length} {#eq series.points.length 1}slice{else}slices{/eq}.',
+
+        'series.summary.scatter':
+            '{series.name}, scatter plot {seriesNumber} of {chart.series.length} with {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.spline':
+            '{series.name}, line {seriesNumber} of {chart.series.length} with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.default':
+            '{series.name}, series {seriesNumber} of {chart.series.length} with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'axis.xAxisDescriptionSingular': 'The chart has one X axis.',
+
+        'axis.xAxisDescriptionPlural': 'The chart has {numAxes} X axes.',
+
+        'axis.yAxisDescriptionSingular': 'The chart has 1 Y axis.',
+
+        'axis.yAxisDescriptionPlural': 'The chart has {numAxes} Y axes.',
+
+        'legend.legendItem': 'Show {itemName}',
+        'legend.legendLabelNoTitle': 'Toggle series visibility, {chartTitle}',
+        'exporting.chartMenuLabel': 'chart menu',
+        'exporting.menuButtonLabel': 'View chart menu',
+        barMultiple: 'Bar chart with {numSeries} data series.',
+        barSingle: 'Bar chart with {numPoints} {#eq numPoints 1}bar{else}bars{/eq}.',
+        columnMultiple: 'Column chart with {numSeries} data series.',
+        columnSingle: 'Column chart with {numPoints} {#eq numPoints 1}bar{else}bars{/eq}.',
+        combinationChart: 'Combination chart with {numSeries} data series.',
+        defaultMultiple: 'Chart with {numSeries} data series.',
+        defaultSingle: 'Chart with {numPoints} data {#eq numPoints 1}point{else}points{/eq}.',
+        emptyChart: 'Empty chart',
+        lineMultiple: 'Line chart with {numSeries} lines.',
+        lineSingle: 'Line chart with {numPoints} data {#eq numPoints 1}point{else}points{/eq}.',
+        pieSingle: 'Pie chart with {numPoints} {#eq numPoints 1}slice{else}slices{/eq}.',
+        scatterMultiple: 'Scatter chart with {numSeries} data series.',
+        scatterSingle: 'Scatter chart with {numPoints} {#eq numPoints 1}point{else}points{/eq}.',
+        splineMultiple: 'Line chart with {numSeries} lines.',
+        splineSingle: 'Line chart with {numPoints} data {#eq numPoints 1}point{else}points{/eq}.',
+        'series.summary.lineCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length}. Line with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.barCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length}. Bar series with {series.points.length} {#eq series.points.length 1}bar{else}bars{/eq}.',
+
+        'series.summary.columnCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length}. Column series with {series.points.length} {#eq series.points.length 1}bar{else}bars{/eq}.',
+
+        'series.summary.scatterCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length}. Scatter plot with {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.splineCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length}. Line with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.defaultCombination':
+            '{series.name}, series {seriesNumber} of {chart.series.length} with {series.points.length} data {#eq series.points.length 1}point{else}points{/eq}.'
+    },
+    fr: {
+        chartContainerLabel: 'Graphique : {title}',
+        credits: 'Crédits du graphique : {creditsStr}',
+        'series.summary.line':
+            '{series.name}, ligne {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+        'series.summary.bar':
+            '{series.name}, série en barres {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}barre{else}barres{/eq}.',
+        'series.summary.column':
+            '{series.name}, série en colonnes {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}colonne{else}colonnes{/eq}.',
+        'series.summary.pie':
+            '{series.name}, diagramme circulaire {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}part{else}parts{/eq}.',
+        'series.summary.scatter':
+            '{series.name}, nuage de points {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+        'series.summary.spline':
+            '{series.name}, courbe {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+        'series.summary.default':
+            '{series.name}, série {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+        'axis.xAxisDescriptionSingular': 'Le graphique comporte un axe X.',
+        'axis.xAxisDescriptionPlural': 'Le graphique comporte {numAxes} axes X.',
+        'axis.yAxisDescriptionSingular': 'Le graphique comporte un axe Y.',
+        'axis.yAxisDescriptionPlural': 'Le graphique comporte {numAxes} axes Y.',
+        'legend.legendItem': 'Afficher {itemName}',
+        'legend.legendLabelNoTitle': 'Afficher ou masquer la visibilité des séries, {chartTitle}.',
+        'exporting.chartMenuLabel': 'le menu du graphique',
+        'exporting.menuButtonLabel': 'Afficher le menu du graphique',
+        barMultiple: 'Graphique à barres avec {numSeries} séries de données.',
+        barSingle: 'Graphique à barres avec {numPoints} {#eq numPoints 1}barre{else}barres{/eq}.',
+        columnMultiple: 'Graphique en colonnes avec {numSeries} séries de données.',
+        columnSingle: 'Graphique en colonnes avec {numPoints} {#eq numPoints 1}colonne{else}colonnes{/eq}.',
+        combinationChart: 'Graphique combiné avec {numSeries} séries de données.',
+        defaultMultiple: 'Graphique avec {numSeries} séries de données.',
+        defaultSingle: 'Graphique avec {numPoints} données {#eq numPoints 1}point{else}points{/eq}.',
+        emptyChart: 'Graphique vide',
+        lineMultiple: 'Graphique en courbes avec {numSeries} lignes.',
+        lineSingle: 'Graphique en courbes avec {numPoints} données {#eq numPoints 1}point{else}points{/eq}.',
+        pieSingle: 'Graphique circulaire avec {numPoints} {#eq numPoints 1}part{else}parts{/eq}.',
+        scatterMultiple: 'Graphique de dispersion avec {numSeries} séries de données.',
+        scatterSingle: 'Graphique de dispersion avec {numPoints} {#eq numPoints 1}point{else}points{/eq}.',
+        splineMultiple: 'Graphique en courbes lissées avec {numSeries} lignes.',
+        splineSingle: 'Graphique en courbes lissées avec {numPoints} données {#eq numPoints 1}point{else}points{/eq}.',
+        'series.summary.lineCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length}. Ligne avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.barCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length}. Série en barres avec {series.points.length} {#eq series.points.length 1}barre{else}barres{/eq}.',
+
+        'series.summary.columnCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length}. Série en colonnes avec {series.points.length} {#eq series.points.length 1}colonne{else}colonnes{/eq}.',
+
+        'series.summary.scatterCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length}. Nuage de points avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.splineCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length}. Courbe avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.',
+
+        'series.summary.defaultCombination':
+            '{series.name}, série {seriesNumber} sur {chart.series.length} avec {series.points.length} {#eq series.points.length 1}point{else}points{/eq}.'
+    }
+};
+
 const chartTemplates: Record<string, string> = {
     area: 'area',
     bar: 'bar',
@@ -115,7 +253,78 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Set context/export menu strings */
         setMenuOptions(menuOptions: ExportMenuOptions): void {
-            this.chartConfig.lang = menuOptions;
+            Highcharts.setOptions({
+                lang: menuOptions,
+                accessibility: { enabled: true }
+            });
+        },
+
+        syncHighchartsLang(t: (key: string) => string, lang: LangId): void {
+            const r = raw[lang];
+            Highcharts.setOptions({
+                lang: {
+                    accessibility: {
+                        chartContainerLabel: r['chartContainerLabel'],
+                        defaultChartTitle: t('HACK.accessibility.defaultChartTitle'),
+                        svgContainerLabel: t('HACK.accessibility.svgContainerLabel'),
+                        credits: r['credits'],
+                        screenReaderSection: {
+                            beforeRegionLabel: t('HACK.accessibility.screenReaderSection.beforeRegionLabel'),
+                            afterRegionLabel: t('HACK.accessibility.screenReaderSection.afterRegionLabel'),
+                            endOfChartMarker: t('HACK.accessibility.screenReaderSection.endOfChartMarker')
+                        },
+                        series: {
+                            summary: {
+                                default: r['series.summary.default'],
+                                line: r['series.summary.line'],
+                                bar: r['series.summary.bar'],
+                                column: r['series.summary.column'],
+                                pie: r['series.summary.pie'],
+                                scatter: r['series.summary.scatter'],
+                                spline: r['series.summary.spline'],
+                                defaultCombination: r['series.summary.defaultCombination'],
+                                lineCombination: r['series.summary.lineCombination'],
+                                barCombination: r['series.summary.barCombination'],
+                                columnCombination: r['series.summary.columnCombination'],
+                                scatterCombination: r['series.summary.scatterCombination'],
+                                splineCombination: r['series.summary.splineCombination']
+                            }
+                        },
+                        exporting: {
+                            chartMenuLabel: r['exporting.chartMenuLabel'],
+                            menuButtonLabel: r['exporting.menuButtonLabel']
+                        },
+                        axis: {
+                            xAxisDescriptionSingular: r['axis.xAxisDescriptionSingular'],
+                            xAxisDescriptionPlural: r['axis.xAxisDescriptionPlural'],
+                            yAxisDescriptionSingular: r['axis.yAxisDescriptionSingular'],
+                            yAxisDescriptionPlural: r['axis.yAxisDescriptionPlural']
+                        },
+                        legend: {
+                            legendLabel: t('HACK.accessibility.legend.legendLabel'),
+                            legendItem: r['legend.legendItem'],
+                            legendLabelNoTitle: r['legend.legendLabelNoTitle']
+                        },
+                        chartTypes: {
+                            barMultiple: r['barMultiple'],
+                            barSingle: r['barSingle'],
+                            columnMultiple: r['columnMultiple'],
+                            columnSingle: r['columnSingle'],
+                            combinationChart: r['combinationChart'],
+                            defaultMultiple: r['defaultMultiple'],
+                            defaultSingle: r['defaultSingle'],
+                            emptyChart: r['emptyChart'],
+                            lineMultiple: r['lineMultiple'],
+                            lineSingle: r['lineSingle'],
+                            pieSingle: r['pieSingle'],
+                            scatterMultiple: r['scatterMultiple'],
+                            scatterSingle: r['scatterSingle'],
+                            splineMultiple: r['splineMultiple'],
+                            splineSingle: r['splineSingle']
+                        }
+                    }
+                }
+            });
         },
 
         /** Set highcharts config (from imported json file) */
@@ -124,6 +333,7 @@ export const useChartStore = defineStore('chartProperties', {
             // TODO: tons of edge cases here depending on the complexity of a chart configuration
             this.chartConfig = {
                 ...chartConfig,
+                accessibility: { enabled: true },
                 title: {
                     text: this.toBilingual(chartConfig.title?.text ?? '')
                 },
@@ -214,6 +424,7 @@ export const useChartStore = defineStore('chartProperties', {
             categoryLabel = { en: '', fr: '' }
         ): void {
             this.chartConfig = {
+                accessibility: { enabled: true },
                 title: {
                     text: { en: '', fr: '' }
                 },
