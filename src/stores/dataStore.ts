@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
 import { HighchartsConfig } from '@/definitions';
-import type { LangId, LocalizedString } from '@/definitions';
+import type { GridRow, LangId, LocalizedString, PiePoint } from '@/definitions';
 
 export const useDataStore = defineStore('chartData', {
     state: () => ({
         headers: [] as LocalizedString[],
-        gridData: [] as string[][],
+        gridData: [] as GridRow[],
         uploaded: false,
         datatableView: false,
         uploadedFileLang: 'en' as LangId
@@ -30,7 +30,7 @@ export const useDataStore = defineStore('chartData', {
         },
 
         /** Initially set grid data when uploaded new file */
-        setGridData(data: string[][]): void {
+        setGridData(data: GridRow[]): void {
             this.gridData = data;
         },
 
@@ -50,13 +50,21 @@ export const useDataStore = defineStore('chartData', {
                 const headers: LocalizedString[] = config.series.map((series) => series.name);
                 this.setHeaders(headers);
 
-                const gridData: string[][] = [];
+                const gridData: GridRow[] = [];
                 config.series.forEach((series, colIdx) => {
+                    const seriesLength = Array.isArray(config.series)
+                        ? config.series.length
+                        : config.series.data.length;
+
                     series.data?.forEach((value, rowIdx) => {
                         if (!gridData[rowIdx]) {
-                            gridData[rowIdx] = [];
+                            gridData[rowIdx] = [{ en: '', fr: '' }, ...Array(seriesLength - 1).fill('')] as GridRow;
                         }
-                        gridData[rowIdx][colIdx] = value.toString();
+                        if (series.type === 'pie') {
+                            gridData[rowIdx][colIdx] = String((value as PiePoint).y);
+                        } else {
+                            gridData[rowIdx][colIdx] = value.toString();
+                        }
                     });
                 });
 
@@ -66,13 +74,13 @@ export const useDataStore = defineStore('chartData', {
                     const categories = config.xAxis.categories;
                     // insert categories as first column
                     gridData.forEach((row, idx) => {
-                        row.unshift(categories[idx] as string);
+                        row.unshift(categories[idx] as LocalizedString);
                     });
                     // add category header
                     this.headers.unshift(config.xAxis.title?.text || { en: '', fr: '' });
                 }
 
-                this.setGridData(gridData);
+                this.setGridData(gridData as GridRow[]);
             } else {
                 console.error('Invalid highcharts config file structure uploaded');
             }
@@ -90,29 +98,24 @@ export const useDataStore = defineStore('chartData', {
         },
 
         /** Delete row(s) from grid data */
-        deleteRows(selectedRowIdxs: string[]): void {
-            this.gridData = this.gridData.filter((_, idx) => !selectedRowIdxs.includes(idx.toString()));
+        deleteRows(selectedRowIdxs: number[]): void {
+            this.gridData = this.gridData.filter((_, idx) => !selectedRowIdxs.includes(idx));
         },
-
         /** Add new row to grid data */
-        addNewRow(selectedRowIdx: string, below: boolean = true): void {
-            const newRow = this.headers.map((_, colIdx) => (colIdx === 0 ? '' : '0'));
-            const newIdx = parseInt(selectedRowIdx);
+        addNewRow(selectedRowIdx: number, below: boolean = true): void {
+            const newRow = this.headers.map((_, colIdx) => (colIdx === 0 ? { en: '', fr: '' } : '0')) as GridRow;
             // add empty row based on insert above/below
             if (below) {
-                this.gridData.splice(newIdx + 1, 0, newRow);
+                this.gridData.splice(selectedRowIdx + 1, 0, newRow);
             } else {
-                this.gridData.splice(newIdx, 0, newRow);
+                this.gridData.splice(selectedRowIdx, 0, newRow);
             }
         },
 
         /** Delete column(s) from grid data */
-        deleteCols(selectedColIdxs: string[]): void {
+        deleteCols(selectedColIdxs: number[]): void {
             // sort indices in descending to avoid issues with shifting
-            const selectedIdxs = selectedColIdxs
-                .map((idx: string) => parseInt(idx))
-                .sort()
-                .reverse();
+            const selectedIdxs = [...selectedColIdxs].sort((a, b) => b - a);
 
             // for each col delete its header and all col values from grid
             selectedIdxs.forEach((idx) => {
@@ -126,10 +129,10 @@ export const useDataStore = defineStore('chartData', {
         },
 
         /** Add new column to grid data */
-        addNewCol(selectedColIdx: string, right: boolean = true): void {
+        addNewCol(selectedColIdx: number, right: boolean = true): void {
             const newCol = { en: 'Untitled', fr: 'Sans titre' };
             // determine new position based on insert right/left
-            const newIdx = right ? parseInt(selectedColIdx) + 1 : parseInt(selectedColIdx);
+            const newIdx = right ? selectedColIdx + 1 : selectedColIdx;
             // add new header and empty col of values
             this.headers.splice(newIdx, 0, newCol);
             this.gridData.forEach((row) => {
