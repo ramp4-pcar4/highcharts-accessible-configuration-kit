@@ -5,7 +5,7 @@
         <div v-if="chartType != 'pie'" class="relative mt-2 selector">
             <select
                 class="border text-sm md:text-base border-black w-full p-2 rounded appearance-none cursor-pointer"
-                v-model="activeDataSeries"
+                v-model="chartStore.activeSeriesIndex"
                 :aria-label="$t('HACK.customization.dataSeries')"
                 @change="changeChartType(false)"
             >
@@ -202,10 +202,9 @@ watch(
 const chartConfig = computed(() => chartStore.chartConfig);
 const activeLang = computed(() => chartStore.activeLang);
 
-const activeDataSeries = ref<number>(0);
 const activeSeries = computed(() => {
     if (Array.isArray(chartStore.normalizedSeries)) {
-        return chartStore.normalizedSeries[activeDataSeries.value];
+        return chartStore.normalizedSeries[chartStore.activeSeriesIndex];
     } else {
         return chartStore.normalizedSeries;
     }
@@ -247,13 +246,13 @@ const markerOptions: Record<string, string> = {
 
 onBeforeMount(() => {
     const series = chartConfig.value.series;
-    activeDataSeries.value = 0;
+    chartStore.activeSeriesIndex = 0;
     chartType.value = activeSeries.value?.type ?? '';
     if (chartType.value === 'pie') {
         // To ensure that dropdown and colours reflect the graph being displayed when switching back to the data series tab
         if (Array.isArray(series)) {
             const visiblePieIndex = series.findIndex((s) => s.type === 'pie' && s.visible !== false);
-            activeDataSeries.value = visiblePieIndex !== -1 ? visiblePieIndex : 0;
+            chartStore.activeSeriesIndex = visiblePieIndex !== -1 ? visiblePieIndex : 0;
         }
         const activeSeriesColors = (activeSeries.value as SeriesData)?.colors;
         if (activeSeriesColors) {
@@ -278,26 +277,9 @@ const updatePieColour = (index: number, color: string) => {
 const changeChartType = (updateChart = true) => {
     if (updateChart || chartType.value === 'pie') {
         emit('loading', true);
-        const selectedSeries = activeDataSeries.value;
         const seriesNames = Object.values(dataStore.headers).slice(1);
 
-        let currentColours: string[] = [];
-        if (activeSeries.value && 'name' in activeSeries.value && Array.isArray(activeSeries.value.colors)) {
-            currentColours = [...activeSeries.value.colors];
-        }
-
-        const selectedSeriesName = Array.isArray(chartConfig.value.series)
-            ? chartConfig.value.series[activeDataSeries.value]?.name
-            : undefined;
-
-        chartStore.updateConfig(
-            chartType.value,
-            seriesNames,
-            dataStore.headers,
-            dataStore.gridData,
-            chartType.value === 'pie' ? selectedSeriesName : undefined,
-            currentColours
-        );
+        chartStore.updateConfig(chartType.value, seriesNames, dataStore.headers, dataStore.gridData);
         // set brief timeout to allow chart to re-render
         setTimeout(() => {
             emit('loading', false);

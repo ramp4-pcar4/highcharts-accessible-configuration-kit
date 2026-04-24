@@ -43,7 +43,8 @@ export const useChartStore = defineStore('chartProperties', {
         pieBaseColours: [] as string[],
         activeLang: 'en' as LangId,
         isBilingual: true,
-        showLangWarning: true
+        showLangWarning: true,
+        activeSeriesIndex: 0 as number
     }),
     getters: {
         resolvedChartConfig(): HighchartsConfig {
@@ -259,14 +260,7 @@ export const useChartStore = defineStore('chartProperties', {
         },
 
         /** Update highcharts configuration for chart type */
-        updateConfig(
-            type: string,
-            series: LocalizedString[],
-            headers: LocalizedString[],
-            gridData: GridRow[],
-            selectedSeries?: LocalizedString,
-            currentColours?: string[]
-        ): void {
+        updateConfig(type: string, series: LocalizedString[], headers: LocalizedString[], gridData: GridRow[]): void {
             this.chartConfig.tooltip = {};
             switch (type) {
                 case chartTemplates.area: {
@@ -335,17 +329,15 @@ export const useChartStore = defineStore('chartProperties', {
                 }
                 case chartTemplates.pie: {
                     this.setChartType('pie');
-                    const selectedSeriesIndex = headers.indexOf(selectedSeries || series[0]);
                     const data = gridData.map((row) => {
                         const [, ...values] = row;
                         return {
                             name: row[0],
-                            y: parseFloat(values[selectedSeriesIndex - 1])
+                            y: parseFloat(values[this.activeSeriesIndex])
                         };
                     });
-                    const colours = currentColours && currentColours.length > 0 ? currentColours : undefined;
                     const seriesNames = Object.values(headers).slice(1);
-                    this.updatePieChart(seriesNames, selectedSeriesIndex - 1, data, colours);
+                    this.updatePieChart(seriesNames, this.activeSeriesIndex, data);
                     break;
                 }
             }
@@ -370,12 +362,21 @@ export const useChartStore = defineStore('chartProperties', {
             sortedColIdxs.forEach((colIdx: number) => {
                 this.normalizedSeries.splice(colIdx - 1, 1);
             });
+
+            const isColDeleted = colIdxs.includes(this.activeSeriesIndex + 1);
+            if (this.chartType === 'pie' && isColDeleted) {
+                this.activeSeriesIndex = 0;
+            } else {
+                const shift = colIdxs.filter((i) => i < this.activeSeriesIndex + 1).length;
+                this.activeSeriesIndex -= shift;
+            }
         },
 
         /** Update data series after inserting row */
         insertRow(rowIdx: number): void {
             if (this.chartType === 'pie') {
-                const series = this.normalizedSeries[0];
+                const visiblePieIndex = this.normalizedSeries.findIndex((s) => s.visible !== false);
+                const series = this.normalizedSeries[visiblePieIndex];
                 const newColor = this.defaultColours[this.pieBaseColours.length % this.defaultColours.length];
 
                 if (!Array.isArray(series.data)) return;
@@ -399,6 +400,10 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update data series after inserting column */
         insertColumn(colIdx: number): void {
+            // update active series index if it's inserted to the left of the active series
+            if (colIdx <= this.activeSeriesIndex + 1) {
+                this.activeSeriesIndex += 1;
+            }
             const defaultData = new Array(this.chartConfig.xAxis.categories.length).fill(0);
             const newSeries: SeriesData = {
                 name: { en: 'Untitled', fr: 'Sans titre' },
@@ -408,9 +413,15 @@ export const useChartStore = defineStore('chartProperties', {
                 marker: {
                     symbol: 'circle'
                 },
-                data: defaultData
+                data: defaultData,
+                visible: this.chartType === 'pie' ? false : true
             };
             (this.chartConfig.series as SeriesData[]).splice(colIdx - 1, 0, newSeries);
+
+            // restore visibility of current series for pie charts after shifting
+            if (this.chartType === 'pie' && this.normalizedSeries[this.activeSeriesIndex]) {
+                this.normalizedSeries[this.activeSeriesIndex].visible = true;
+            }
         },
 
         /** Update header (series names) value */
@@ -430,12 +441,13 @@ export const useChartStore = defineStore('chartProperties', {
 
         /** Update a single series value after data grid cell has been modified */
         updateVal(rowIdx: number, colIdx: number, val: string): void {
-            const series0 = this.normalizedSeries[0];
+            const visiblePieIndex = this.normalizedSeries.findIndex((s) => s.type === 'pie' && s.visible !== false);
+            const activeSeries = this.normalizedSeries[visiblePieIndex === -1 ? 0 : visiblePieIndex];
             const categories = this.chartConfig.xAxis.categories;
 
-            if (series0.type === 'pie' && Array.isArray(series0.data)) {
+            if (activeSeries.type === 'pie' && Array.isArray(activeSeries.data)) {
                 if (colIdx === 0) {
-                    const dataPoint = series0.data[rowIdx] as PiePoint;
+                    const dataPoint = activeSeries.data[rowIdx] as PiePoint;
                     if (typeof dataPoint.name === 'string') {
                         dataPoint.name = { en: dataPoint.name, fr: dataPoint.name };
                     }
@@ -446,8 +458,8 @@ export const useChartStore = defineStore('chartProperties', {
                         categories[rowIdx] = { en: cat, fr: cat };
                     }
                     (categories[rowIdx] as any)[this.activeLang] = val;
-                } else if (colIdx === 1) {
-                    (series0.data[rowIdx] as PiePoint).y = parseFloat(val);
+                } else if (colIdx === visiblePieIndex + 1) {
+                    (activeSeries.data[rowIdx] as PiePoint).y = parseFloat(val);
                 }
             } else {
                 if (colIdx) {
@@ -473,9 +485,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'line',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: { symbol: 'circle' },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -490,11 +502,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'bar',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: {
-                              symbol: 'circle'
-                          },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -509,9 +519,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'scatter',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: { symbol: 'circle' },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -535,11 +545,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'column',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: {
-                              symbol: 'circle'
-                          },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -554,9 +562,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'area',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: { symbol: 'circle' },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -571,9 +579,9 @@ export const useChartStore = defineStore('chartProperties', {
                     ? {
                           name: series.name,
                           type: 'spline',
-                          color: this.defaultColours[index],
-                          dashStyle: 'solid',
-                          marker: { symbol: 'circle' },
+                          color: series.color,
+                          dashStyle: series.dashStyle,
+                          marker: { symbol: series.marker?.symbol ?? 'circle' },
                           data: seriesData[index]
                       }
                     : series
@@ -585,8 +593,7 @@ export const useChartStore = defineStore('chartProperties', {
         updatePieChart(
             seriesNames: LocalizedString[],
             seriesIndex: number,
-            seriesData: { name: LocalizedString; y: number }[],
-            currentColours?: string[]
+            seriesData: { name: LocalizedString; y: number }[]
         ): void {
             // following would support pie chart as part of hybrid charts
             // this.chartConfig.series = this.chartConfig.series.map((series, index) =>
@@ -599,7 +606,9 @@ export const useChartStore = defineStore('chartProperties', {
                         name: seriesNames[seriesIndex],
                         type: 'pie',
                         data: seriesData,
-                        colors: currentColours || this.defaultColours.slice(0, seriesData.length)
+                        color: series.color,
+                        dashStyle: series.dashStyle,
+                        marker: { symbol: series.marker?.symbol ?? 'circle' }
                     };
                 } else {
                     return {
@@ -610,9 +619,9 @@ export const useChartStore = defineStore('chartProperties', {
                     };
                 }
             });
-            const base = currentColours && currentColours.length > 0 ? currentColours : this.defaultColours;
+            const base = this.pieBaseColours?.length ? this.pieBaseColours : this.defaultColours;
 
-            this.pieBaseColours = Array.from({ length: seriesData.length }, (_, i) => base[i % base.length]);
+            this.pieBaseColours = seriesData.map((_, i) => base[i % base.length]);
             if (this.usePatterns) {
                 this.applyPatterns();
             }
