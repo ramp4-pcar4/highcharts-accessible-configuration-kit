@@ -281,11 +281,6 @@ const changeChartType = (updateChart = true) => {
         const selectedSeries = activeDataSeries.value;
         const seriesNames = Object.values(dataStore.headers).slice(1);
 
-        let currentColours: string[] = [];
-        if (activeSeries.value && 'name' in activeSeries.value && Array.isArray(activeSeries.value.colors)) {
-            currentColours = [...activeSeries.value.colors];
-        }
-
         const selectedSeriesName = Array.isArray(chartConfig.value.series)
             ? chartConfig.value.series[activeDataSeries.value]?.name
             : undefined;
@@ -295,8 +290,7 @@ const changeChartType = (updateChart = true) => {
             seriesNames,
             dataStore.headers,
             dataStore.gridData,
-            chartType.value === 'pie' ? selectedSeriesName : undefined,
-            currentColours
+            chartType.value === 'pie' ? selectedSeriesName : undefined
         );
         // set brief timeout to allow chart to re-render
         setTimeout(() => {
