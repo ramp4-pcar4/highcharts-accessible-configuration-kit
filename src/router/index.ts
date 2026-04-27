@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, RouteLocationNormalized } from 'vue-router';
+import { createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationRaw } from 'vue-router';
 import DataSection from '@/components/data-section.vue';
 import ChartSelection from '@/components/chart-selection.vue';
 import ConfigCustomization from '@/components/config-customization.vue';
@@ -6,7 +6,7 @@ import ConfigCustomization from '@/components/config-customization.vue';
 const routes = [
     {
         path: '/',
-        redirect: (to: RouteLocationNormalized) => {
+        redirect: (to: RouteLocationNormalized): RouteLocationRaw => {
             return '/data';
         }
     },

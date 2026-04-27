@@ -93,7 +93,7 @@ const localizeConfig = (chartConfig: any, lang: string): any => {
         }
 
         // otherwise recurse
-        const result = {};
+        const result = {} as typeof chartConfig;
         for (const key in chartConfig) {
             result[key] = localizeConfig(chartConfig[key], lang);
         }

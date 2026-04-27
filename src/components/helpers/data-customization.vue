@@ -148,7 +148,7 @@
                             alpha-channel="hide"
                             :visible-formats="['hex']"
                             default-format="hex"
-                            @color-change="(eventData) => updatePieColour(index, eventData.cssColor)"
+                            @color-change="(eventData: any) => updatePieColour(index, eventData.cssColor)"
                         >
                             <template #copy-button></template>
                         </ColorPicker>
@@ -170,7 +170,7 @@ import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useDataStore } from '../../stores/dataStore';
 import { useChartStore } from '../../stores/chartStore';
 import { chart } from 'highcharts';
-import type { LocalizedString } from '@/definitions';
+import type { LocalizedString, SeriesData } from '@/definitions';
 
 const props = defineProps({
     dataSeries: {
@@ -204,10 +204,10 @@ const activeLang = computed(() => chartStore.activeLang);
 
 const activeDataSeries = ref<number>(0);
 const activeSeries = computed(() => {
-    if (Array.isArray(chartConfig.value.series)) {
-        return chartConfig.value.series[activeDataSeries.value];
+    if (Array.isArray(chartStore.normalizedSeries)) {
+        return chartStore.normalizedSeries[activeDataSeries.value];
     } else {
-        return chartConfig.value.series;
+        return chartStore.normalizedSeries;
     }
 });
 
@@ -258,7 +258,7 @@ onBeforeMount(() => {
         const activeSeriesColors = (activeSeries.value as SeriesData)?.colors;
         if (activeSeriesColors) {
             activeSeriesColors.forEach((_, i) => {
-                showPieColourPicker[i] = false;
+                showPieColourPicker.value[i] = false;
             });
         }
     }
@@ -306,7 +306,7 @@ const changeChartType = (updateChart = true) => {
 
     if (chartType.value === 'pie' && activeSeries.value?.colors) {
         for (let i = 0; i < activeSeries.value.colors.length; i++) {
-            showPieColourPicker[i] = false;
+            showPieColourPicker.value[i] = false;
         }
     }
 };

@@ -1,6 +1,6 @@
 <template>
     <div class="chart-customization-axes">
-        <div v-if="chartConfig.series[0].type !== 'pie'">
+        <div v-if="chartStore.normalizedSeries[0].type !== 'pie'">
             <div class="font-semibold mt-6">
                 {{ $t('HACK.customization.axes.xaxis') }}
                 <span v-if="chartStore.isBilingual">

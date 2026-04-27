@@ -73,7 +73,7 @@ export interface SeriesData {
         symbol: string;
     };
     dashStyle?: string;
-    data?: number[];
+    data?: number [] | PiePoint[];
     visible?: boolean;
 }
 
@@ -89,3 +89,11 @@ export type LocalizedString = {
     en: string;
     fr: string;
 };
+
+export type PiePoint = {
+    name: LocalizedString;
+    y: number;
+    color?: string;
+};
+
+export type GridRow = [LocalizedString, ...string[]];
