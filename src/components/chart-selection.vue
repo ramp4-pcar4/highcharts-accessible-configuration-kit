@@ -242,12 +242,16 @@ const handleChartSelection = (): void => {
     const seriesToUpdate = seriesNames.value.filter(
         (name) =>
             typeof name !== 'string' &&
-            !otherSeries.map((s) => (typeof s !== 'string' ? s[activeLang.value] : s)).includes(name[activeLang.value])
+            !otherSeries
+                .filter(Boolean)
+                .map((s) => (typeof s !== 'string' ? s[activeLang.value] : s))
+                .includes(name[activeLang.value])
     );
 
     if (chartType.value === 'pie') {
         hybridChartType.value = 'none';
         selectedHybridSeries.value = [];
+        chartStore.activeSeriesIndex = 0;
     }
 
     chartStore.updateConfig(chartType.value, seriesToUpdate, dataStore.headers, dataStore.gridData);

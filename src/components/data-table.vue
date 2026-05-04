@@ -459,6 +459,20 @@ const handleColAction = (): void => {
             dataStore.deleteCols(colIdxs);
             chartStore.deleteColumn(colIdxs);
             selectedCols.length = 0; // reset the selections
+
+            if (chartStore.chartType === 'pie') {
+                const activeSeries = chartStore.normalizedSeries[chartStore.activeSeriesIndex];
+                const data = activeSeries?.data;
+                const isPiePoint = Array.isArray(data) && data.length > 0 && typeof data[0] === 'object';
+
+                if (!activeSeries || !isPiePoint) {
+                    // active series has been deleted, need to update pie chart to display another series
+                    const seriesNames = Object.values(dataStore.headers).slice(1);
+                    chartStore.updateConfig('pie', seriesNames, dataStore.headers, dataStore.gridData);
+                } else {
+                    activeSeries.visible = true;
+                }
+            }
             break;
         }
         case colActions.insertRight: {
