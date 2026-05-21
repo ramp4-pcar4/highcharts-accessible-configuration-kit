@@ -34,7 +34,13 @@
                     :aria-label="$t('HACK.selection.template2')"
                     @change="handleHybridSelection"
                 >
-                    <option v-for="template in Object.keys(hybridChartTemplates)" :key="template" :value="template">
+                    <option
+                        v-for="template in Object.keys(hybridChartTemplates)"
+                        :key="template"
+                        :value="template"
+                        :disabled="template === chartType"
+                        :class="{ 'text-gray-400': template === chartType }"
+                    >
                         {{ $t(`HACK.selection.${template}`) }}
                     </option>
                 </select>
@@ -216,6 +222,9 @@ onMounted(() => {
     // default hybrid type to the same as main chart
     if (enableHybrid.value) {
         hybridChartType.value = chartStore.hybridChartType ? chartStore.hybridChartType : 'none';
+        if (hybridChartType.value === chartType.value) {
+            resetHybridSelection();
+        }
     }
 
     // user manually uploaded existing highcharts config
@@ -238,6 +247,14 @@ onBeforeUnmount(() => {
 // handle chart type selection and update chart config (only called after config has been initialized in mounted)
 const handleChartSelection = (): void => {
     loading.value = true;
+
+    if (chartType.value === 'pie') {
+        resetHybridSelection();
+        chartStore.activeSeriesIndex = 0;
+    } else if (hybridChartType.value === chartType.value) {
+        resetHybridSelection();
+    }
+
     const otherSeries = enableMultiselect.value ? selectedHybridSeries.value : [seriesNames.value[1]];
     const seriesToUpdate = seriesNames.value.filter(
         (name) =>
@@ -248,18 +265,7 @@ const handleChartSelection = (): void => {
                 .includes(name[activeLang.value])
     );
 
-    if (chartType.value === 'pie') {
-        hybridChartType.value = 'none';
-        selectedHybridSeries.value = [];
-        chartStore.activeSeriesIndex = 0;
-    }
-
     chartStore.updateConfig(chartType.value, seriesToUpdate, dataStore.headers, dataStore.gridData);
-
-    if (enableHybrid.value && hybridChartType.value === chartType.value) {
-        chartStore.setHybridChartType('none');
-        selectedHybridSeries.value = [];
-    }
 
     // set brief timeout to allow chart to re-render
     setTimeout(() => {
@@ -269,19 +275,21 @@ const handleChartSelection = (): void => {
 
 // modify the chart config to adapt to hybrid chart setup
 const handleHybridSelection = (): void => {
-    if (
-        hybridChartType.value !== chartType.value &&
-        hybridChartType.value !== 'none' &&
-        selectedHybridSeries.value.length > 0
-    ) {
+    if (hybridChartType.value === chartType.value || hybridChartType.value === 'none') {
+        resetHybridSelection();
+    } else if (selectedHybridSeries.value.length > 0) {
         chartStore.updateHybridChart(selectedHybridSeries.value, hybridChartType.value);
-        handleChartSelection();
     } else {
-        chartStore.setHybridChartType('none');
-        selectedHybridSeries.value = [];
-
-        handleChartSelection();
+        chartStore.setHybridChartType(hybridChartType.value);
     }
+    handleChartSelection();
+};
+
+const resetHybridSelection = (): void => {
+    hybridChartType.value = 'none';
+    chartStore.setHybridChartType('none');
+    selectedHybridSeries.value = [];
+    openMultiSelect.value = false;
 };
 
 // add selected series to hybrid chart
