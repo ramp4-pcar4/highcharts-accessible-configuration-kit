@@ -78,3 +78,22 @@ npm run build
 npm run lint
 ```
 
+## Demo Builds
+
+When you push changes to your forked repo, a demo preview is automatically generated. The demo preview updates each time you push changes. Demo folders are deleted daily when the source branch or tag is deleted from your forked repo.
+
+### Accessing Your Demo Previews
+
+- **Branch or tag preview**: Visit `https://YOUR-GITHUB-USERNAME.github.io/highcharts-accessible-configuration-kit/BRANCH-OR-TAG-NAME` to see a live preview of the branch or tag you pushed.
+- **List of all demos**: View all your demo previews by navigating to `https://github.com/YOUR-GITHUB-USERNAME/highcharts-accessible-configuration-kit/tree/demo-page`.
+
+### Enabling Demos for Your Forked Repo
+
+To enable demo previews on your forked repository, update the following settings:
+
+1. **GitHub Pages**: Go to `Settings -> Pages -> Build and deployment source` and select **GitHub Actions**.
+2. **Deployment branches and tags**: Go to `Settings -> Environments -> github-pages -> Deployment branches and tags` and choose **No restriction**.
+3. **Actions permissions**: Go to `Settings -> Actions -> General -> Actions permissions` and select **Allow all actions and reusable workflows**.
+4. **Workflow permissions**: Go to `Settings -> Actions -> General -> Workflow permissions` and select **Read and write permissions**.
+5. **Enable workflows**: Go to the `Actions` tab and click **I understand my workflows, go ahead and enable them**. If workflows are already enabled for your fork, this prompt will not appear.
+
