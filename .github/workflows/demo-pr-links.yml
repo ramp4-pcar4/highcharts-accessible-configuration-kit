@@ -1,0 +1,26 @@
+name: PR demo links
+
+on:
+    pull_request_target:
+        types: [opened]
+
+permissions:
+    issues: write
+
+jobs:
+    comment-on-pr:
+        name: Comment demo links on PR
+        runs-on: ubuntu-latest
+        steps:
+            - name: Comment on the PR
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `Your demo site is ready.
+
+                      Demo: https://${{ github.event.pull_request.head.repo.owner.login }}.github.io/highcharts-accessible-configuration-kit/${{ github.head_ref }}/`
+                      })

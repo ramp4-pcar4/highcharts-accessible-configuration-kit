@@ -1,0 +1,79 @@
+name: Clean up demo folders when they no longer exist
+
+on:
+    schedule:
+        - cron: '0 0 * * *'
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    pages: write
+    id-token: write
+
+jobs:
+    clean-folders:
+        name: Clean demo folders
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Checkout demo-page branch
+              uses: actions/checkout@v6
+              with:
+                  ref: demo-page
+
+            - name: Set up Git
+              run: |
+                  git config --global user.name "GitHub Action"
+                  git config --global user.email "action@github.com"
+
+            - name: Fetch remote branches and tags
+              run: git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+
+            - name: Remove folders for deleted refs
+              run: |
+                  remote_branches=$(git branch -r | grep -v '\->' | grep "origin/" | sed "s# *origin/##g")
+                  remote_tags=$(git ls-remote --tags origin | awk -F/ '{print $NF}' | sed 's/\^{}//')
+                  remote_refs=$(echo -e "$remote_branches\n$remote_tags")
+                  local_folders=$(ls -d */ 2>/dev/null | sed 's#/##' || true)
+
+                  for folder in $local_folders; do
+                      if ! echo "$remote_refs" | grep -qw "$folder"; then
+                          echo "Deleting folder: $folder"
+                          rm -rf "$folder"
+                      fi
+                  done
+
+            - name: Commit and push changes
+              id: commit-changes
+              run: |
+                  git add .
+                  if git diff --cached --quiet; then
+                      echo "No changes to commit."
+                      echo "changes=false" >> $GITHUB_ENV
+                  else
+                      git commit -m "Automated demo folder cleanup"
+                      git reset --soft $(git rev-list --max-parents=0 HEAD)
+                      git commit -m "Automated demo folder cleanup"
+                      git push -f origin demo-page
+                      echo "changes=true" >> $GITHUB_ENV
+                  fi
+
+            - name: Upload artifact
+              if: env.changes == 'true'
+              uses: actions/upload-pages-artifact@v5
+              with:
+                  path: .
+                  retention-days: 1
+
+            - name: Setup Pages
+              if: env.changes == 'true'
+              uses: actions/configure-pages@v6
+              with:
+                  enablement: true
+
+            - name: Deploy to GitHub Pages
+              if: env.changes == 'true'
+              id: deployment
+              uses: actions/deploy-pages@v5
