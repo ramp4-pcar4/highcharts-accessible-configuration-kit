@@ -89,7 +89,7 @@ When you push changes to your forked repo, a demo preview is automatically gener
 
 ### Enabling Demos for Your Forked Repo
 
-To enable demo previews on your forked repository, update the following settings:
+To enable demo previews on your forked repository, update the following settings: 
 
 1. **GitHub Pages**: Go to `Settings -> Pages -> Build and deployment source` and select **GitHub Actions**.
 2. **Deployment branches and tags**: Go to `Settings -> Environments -> github-pages -> Deployment branches and tags` and choose **No restriction**.
