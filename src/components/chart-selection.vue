@@ -133,14 +133,9 @@ import { useDataStore } from '../stores/dataStore';
 import { useSidemenuStore } from '../stores/sidemenuStore';
 import { CurrentView } from '../definitions';
 
-import Highcharts from 'highcharts';
-import dataModule from 'highcharts/modules/data';
-import exporting from 'highcharts/modules/exporting';
-import exportData from 'highcharts/modules/export-data';
-
-exporting(Highcharts);
-exportData(Highcharts);
-dataModule(Highcharts);
+import 'highcharts/modules/data';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/export-data';
 
 const emit = defineEmits(['change-view']);
 const props = defineProps({

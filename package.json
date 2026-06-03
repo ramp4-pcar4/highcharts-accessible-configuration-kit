@@ -21,7 +21,7 @@
     ],
     "dependencies": {
         "file-saver": "^2.0.5",
-        "highcharts": "^11.4.8",
+        "highcharts": "^12.6.0",
         "highcharts-vue": "^2.0.1",
         "jsonschema": "^1.4.1",
         "jszip": "^3.10.1",

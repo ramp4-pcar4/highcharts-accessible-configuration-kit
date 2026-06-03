@@ -1,17 +1,12 @@
 import { defineStore } from 'pinia';
 import Highcharts from 'highcharts';
-import PatternFill from 'highcharts/modules/pattern-fill';
+import 'highcharts/modules/pattern-fill';
 import { ExportMenuOptions, HighchartsConfig, SeriesData } from '../definitions';
 import type { GridRow, LangId, LocalizedString, PiePoint } from '../definitions';
 import type { PatternObject } from 'highcharts';
-import exporting from 'highcharts/modules/exporting';
-import exportData from 'highcharts/modules/export-data';
-import accessibility from 'highcharts/modules/accessibility';
-
-PatternFill(Highcharts);
-exporting(Highcharts);
-exportData(Highcharts);
-accessibility(Highcharts);
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/export-data';
+import 'highcharts/modules/accessibility';
 
 const raw: Record<string, Record<string, string>> = {
     en: {
