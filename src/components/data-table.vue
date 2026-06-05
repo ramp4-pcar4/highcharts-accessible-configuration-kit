@@ -207,16 +207,11 @@ import { useI18n } from 'vue-i18n';
 import { CurrentView } from '../definitions';
 import type { GridRow, LocalizedString, SeriesData } from '../definitions';
 
-import Highcharts from 'highcharts';
-import dataModule from 'highcharts/modules/data';
-import exporting from 'highcharts/modules/exporting';
-import exportData from 'highcharts/modules/export-data';
+import 'highcharts/modules/data';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/export-data';
 
 import LanguageTabs from './helpers/language-tabs.vue';
-
-exporting(Highcharts);
-exportData(Highcharts);
-dataModule(Highcharts);
 
 const { t } = useI18n();
 

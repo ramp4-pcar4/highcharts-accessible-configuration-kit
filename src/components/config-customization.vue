@@ -140,14 +140,9 @@ import AxesCustomization from './helpers/axes-customization.vue';
 
 import Ajv from 'ajv';
 
-import Highcharts from 'highcharts';
-import dataModule from 'highcharts/modules/data';
-import exporting from 'highcharts/modules/exporting';
-import exportData from 'highcharts/modules/export-data';
-
-exporting(Highcharts);
-exportData(Highcharts);
-dataModule(Highcharts);
+import 'highcharts/modules/data';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/export-data';
 
 const chartStore = useChartStore();
 const sidemenuStore = useSidemenuStore();
