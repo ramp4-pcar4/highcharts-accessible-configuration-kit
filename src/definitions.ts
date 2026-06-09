@@ -9,6 +9,9 @@ export interface HighchartsConfig {
     credits?: {
         enabled: boolean;
     };
+    accessibility?: {
+        enabled: boolean;
+    };
     subtitle: {
         text: LocalizedString;
     };
