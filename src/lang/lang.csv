@@ -122,3 +122,5 @@ HACK.accessibility.screenReaderSection.beforeRegionLabel,before test test testCh
 HACK.accessibility.screenReaderSection.afterRegionLabel,End of interactive chart,1,Fin du graphique interactif,0
 HACK.accessibility.screenReaderSection.endOfChartMarker,End of chart,1,Fin du graphique,0
 HACK.accessibility.legend.legendLabel,Chart legend,1,Légende du graphique,0
+HACK.help.title,Highcharts Accessible Configuration Kit User Guide,1,Trousse de Configuration Accessible Highcharts – Guide d’aide,0
+HACK.help.title.mobile,HACK User Guide,1,TCAH – Guide d’aide,0

@@ -17,6 +17,14 @@
                 <!-- Export button added to header for standalone HACK so that it's more accessible -->
                 <ChartExport v-if="!props.plugin" :in-header="true" />
                 <button
+                    @click="$vfm.open(`hack-help-panel`)"
+                    class="bg-white border rounded-full border-black hover:bg-gray-100 font-bold w-10 h-10 ml-auto"
+                >
+                    {{ '?' }}
+                </button>
+
+                <HackHelpPanel></HackHelpPanel>
+                <button
                     @click="changeLang"
                     class="bg-white border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 ml-auto mr-2"
                     v-if="!wetTemplate"
@@ -74,6 +82,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Component, PropType } from 'vue';
 
+import HackHelpPanel from './components/helpers/hack-help-panel/hack-help-panel.vue';
 import { useChartStore } from './stores/chartStore';
 import { useDataStore } from './stores/dataStore';
 import { useI18n } from 'vue-i18n';
@@ -180,8 +189,8 @@ onMounted(() => {
         i18n.locale.value = appLang.value;
     }
 
-     chartStore.setMenuOptions(contextMenuLabels.value);
-     chartStore.syncHighchartsLang(t, appLang.value as LangId);
+    chartStore.setMenuOptions(contextMenuLabels.value);
+    chartStore.syncHighchartsLang(t, appLang.value as LangId);
 
     // clear store state (required for shared store state for multi-instance charts)
     if (props.plugin) {
