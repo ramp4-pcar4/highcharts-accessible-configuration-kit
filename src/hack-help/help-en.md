@@ -1,4 +1,4 @@
-# Getting Started
+# Getting Started 
 
 The Highcharts Accessible Configuration Kit (HACK) is a tool to help you easily create and edit [Highcharts](https://www.highcharts.com/). You can upload data in a datatable format through a CSV, XLS, or XLSX file or by pasting the data directly. You can also import an existing highcharts using a JSON file from the side menu. For a multi-series chart, this is an example of a valid datatable format:
 
