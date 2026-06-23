@@ -45,7 +45,7 @@
                     class="flex items-center md:px-2 my-6 mx-1"
                     :to="{ name: 'Data' }"
                     v-tippy="{
-                        delay: '200',
+                        delay: '250',
                         placement: 'right',
                         content: $t('HACK.data.title'),
                         onShow: () => !sidemenuStore.expanded,
