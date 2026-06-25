@@ -237,6 +237,7 @@ onBeforeUnmount(() => {
 });
 
 const onFileUpload = (event: Event) => {
+    chartStore.resetStore();
     const uploadedFile = Array.from((event.target as HTMLInputElement).files as ArrayLike<File>)[0];
 
     if (uploadedFile && allowedTypes.includes(uploadedFile.type)) {
