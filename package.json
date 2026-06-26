@@ -29,7 +29,7 @@
         "pinia": "^3.0.4",
         "ramp-json-editor": "^1.0.3",
         "sass": "^1.80.6",
-        "vue": "^3.5.9",
+        "vue": "^3.5.38",
         "vue-accessible-color-picker": "^5.2.0",
         "vue-final-modal": "^4.5.5",
         "vue-i18n": "^11.3.0",
@@ -44,7 +44,7 @@
         "@rollup/plugin-dsv": "^3.0.5",
         "@types/file-saver": "^2.0.7",
         "@types/highcharts": "^5.0.44",
-        "@vitejs/plugin-vue": "^6.0.5",
+        "@vitejs/plugin-vue": "^6.0.7",
         "autoprefixer": "^10.4.23",
         "eslint": "^9.16.0",
         "eslint-plugin-prettier": "^5.2.1",
@@ -53,7 +53,7 @@
         "prettier": "^3.3.3",
         "tailwindcss": "^3.4.11",
         "typescript": "^6.0.3",
-        "vite": "^8.0.8",
+        "vite": "^8.1.0",
         "vue-eslint-parser": "^9.3.1"
     }
 }
