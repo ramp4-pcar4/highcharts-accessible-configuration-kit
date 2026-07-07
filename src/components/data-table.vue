@@ -8,6 +8,20 @@
             >
                 {{ $t('HACK.datatable.uploadNew') }}
             </button>
+            <button
+                class="bg-white text-black self-start border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 mb-2 sm:mb-0 overflow-visible mr-2"
+                @click="$vfm.open('lang-config-upload')"
+            >
+                {{ $t('HACK.datatable.uploadConfig') }}
+            </button>
+
+            <vue-final-modal
+                modalId="lang-config-upload"
+                content-class="w-3/4 sm:w-1/2 mx-4 p-7 bg-white border rounded-lg"
+                class="flex justify-center items-center"
+            >
+                <upload-lang-config @close="$vfm.close('lang-config-upload')" />
+            </vue-final-modal>
 
             <!-- Row and column actions -->
             <div class="ml-auto max-w-full">
@@ -200,6 +214,8 @@
 </template>
 
 <script setup lang="ts">
+import { VueFinalModal } from 'vue-final-modal';
+import UploadLangConfig from './helpers/upload-lang-config.vue';
 import { computed, reactive, ref, inject, onBeforeUnmount, onMounted, nextTick } from 'vue';
 import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';

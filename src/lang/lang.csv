@@ -51,6 +51,17 @@ HACK.export.downloadCSV,Download CSV,1,Télécharger CSV,1
 HACK.export.downloadXLS,Download XLS,1,Télécharger XLS,1
 HACK.export.viewData,View data table,1,Afficher le tableau de données,1
 HACK.datatable.uploadNew,Upload new data,1,Télécharger de nouvelles données,1
+HACK.datatable.uploadConfig,Upload language configuration,1,Configuration de la langue de téléchargement,1
+HACK.datatable.uploadConfig,Upload language configuration,1,Configuration de la langue de téléchargement,1
+HACK.datatable.uploadConfig.title,Upload a JSON language configuration file,1,Télécharger un fichier de configuration de langue JSON,1
+HACK.datatable.uploadConfig.lang,Select the language configuration you would like to override,1,Sélectionnez la configuration de langue que vous souhaitez remplacer.,0
+HACK.datatable.uploadConfig.supported,Supported formats: .json,1,Formats supportés : .json,1
+HACK.datatable.uploadConfig.unsupported,Unsupported file type. Please upload a .json file.,1,Type de fichier non pris en charge. Veuillez télécharger un fichier .json.,1
+HACK.datatable.uploadConfig.error.structure,Invalid JSON structure,1, Structure JSON invalide,1
+HACK.datatable.uploadConfig.error.series,Mismatch in number of series,1,Le nombre de séries ne correspond pas,1
+HACK.datatable.uploadConfig.error.categories,Mismatch in number of categories,1,Le nombre de catégories ne correspond pas,1
+HACK.datatable.uploadConfig.error.parse,Parsing error,1,Erreur d'analyse,1
+HACK.datatable.uploadConfig.apply,Apply,1,Appliquer,1
 HACK.datatable.selectRow,Select row,1,Sélectionner une ligne,1
 HACK.datatable.selectCol,Select column,1,Sélectionner une colonne,1
 HACK.datatable.addNewCol,Add column, 1,Ajouter une colonne,1

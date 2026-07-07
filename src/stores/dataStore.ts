@@ -138,6 +138,33 @@ export const useDataStore = defineStore('chartData', {
             this.gridData.forEach((row) => {
                 row.splice(newIdx, 0, '0');
             });
+        },
+
+        applyLanguageConfig(config: HighchartsConfig, lang: LangId) {
+            if (config.xAxis?.title?.text && this.headers[0]) {
+                this.headers[0][lang] =
+                    typeof config.xAxis.title.text === 'string'
+                        ? config.xAxis.title.text
+                        : (config.xAxis.title.text[lang] ?? '');
+            }
+
+            config.xAxis?.categories?.forEach((category, index) => {
+                if (this.gridData[index]) {
+                    (this.gridData[index][0] as LocalizedString)[lang] =
+                        typeof category === 'string'
+                            ? category
+                            : typeof category === 'object' && category !== null
+                              ? (category[lang] ?? '')
+                              : String(category);
+                }
+            });
+
+            config.series?.forEach((series, index) => {
+                if (series.name && this.headers[index + 1]) {
+                    this.headers[index + 1][lang] =
+                        typeof series.name === 'string' ? series.name : (series.name[lang] ?? '');
+                }
+            });
         }
     }
 });
