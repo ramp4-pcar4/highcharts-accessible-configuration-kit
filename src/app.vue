@@ -180,8 +180,8 @@ onMounted(() => {
         i18n.locale.value = appLang.value;
     }
 
-     chartStore.setMenuOptions(contextMenuLabels.value);
-     chartStore.syncHighchartsLang(t, appLang.value as LangId);
+    chartStore.setMenuOptions(contextMenuLabels.value);
+    chartStore.syncHighchartsLang(t, appLang.value as LangId);
 
     // clear store state (required for shared store state for multi-instance charts)
     if (props.plugin) {
@@ -224,7 +224,10 @@ const changeView = (view: CurrentView): void => {
 
 const saveChanges = (): void => {
     saving.value = true;
-    emit('saved', chartStore.chartConfig);
+
+    const configToEmit = chartStore.isBilingual ? chartStore.chartConfig : chartStore.resolvedChartConfig;
+    emit('saved', configToEmit);
+
     setTimeout(() => {
         saving.value = false;
     }, 1000);

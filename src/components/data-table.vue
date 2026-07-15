@@ -87,7 +87,7 @@
                                     type="text"
                                     v-model="(headers[colIdx] as { [key: string]: string })[activeLang]"
                                     :aria-label="$t('HACK.datatable.colHeaders')"
-                                    :style="{ width: Math.max(header[activeLang].length + 2, 8) + 'ch' }"
+                                    :style="{ width: Math.max((header[activeLang] ?? header).length + 2, 8) + 'ch' }"
                                     :readonly="editingHeader !== colIdx"
                                     @input="updateHeader(colIdx, headers[colIdx])"
                                     @focus="editColHeader(colIdx)"
