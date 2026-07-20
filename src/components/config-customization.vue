@@ -138,6 +138,11 @@ import TitlesCustomization from './helpers/titles-customization.vue';
 import DataCustomization from './helpers/data-customization.vue';
 import AxesCustomization from './helpers/axes-customization.vue';
 
+// @ts-ignore
+import { JsonEditor } from 'ramp-json-editor';
+// @ts-ignore
+import 'ramp-json-editor/dist/ramp-json-editor.css';
+
 import Ajv from 'ajv';
 
 import 'highcharts/modules/data';

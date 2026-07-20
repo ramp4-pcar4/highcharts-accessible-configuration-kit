@@ -90,7 +90,7 @@
                 </div>
             </div>
 
-            <div v-if="fileName" class="mb-4 p-4 border rounded bg-gray-50">
+            <div v-if="fileName && chartStore.isBilingual" class="mb-4 p-4 border rounded bg-gray-50">
                 <div class="text-lg font-bold text-gray-700">
                     {{ $t('HACK.data.upload.lang') }}
                 </div>
@@ -168,7 +168,7 @@ import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
 import { useSidemenuStore } from '../stores/sidemenuStore';
 import { CurrentView } from '../definitions';
-import type { LangId } from '../definitions';
+import type { HighchartsConfig, LangId } from '../definitions';
 import { useI18n } from 'vue-i18n';
 
 import PasteData from './helpers/paste-data.vue';
@@ -237,7 +237,8 @@ onBeforeUnmount(() => {
 });
 
 const onFileUpload = (event: Event) => {
-    chartStore.resetStore();
+    chartStore.chartConfig = {} as HighchartsConfig;
+
     const uploadedFile = Array.from((event.target as HTMLInputElement).files as ArrayLike<File>)[0];
 
     if (uploadedFile && allowedTypes.includes(uploadedFile.type)) {

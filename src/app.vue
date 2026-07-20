@@ -233,7 +233,10 @@ const changeView = (view: CurrentView): void => {
 
 const saveChanges = (): void => {
     saving.value = true;
-    emit('saved', chartStore.chartConfig);
+
+    const configToEmit = chartStore.isBilingual ? chartStore.chartConfig : chartStore.resolvedChartConfig;
+    emit('saved', configToEmit);
+
     setTimeout(() => {
         saving.value = false;
     }, 1000);
