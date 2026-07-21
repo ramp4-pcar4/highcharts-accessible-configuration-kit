@@ -81,6 +81,7 @@
                                     dataFile = undefined;
                                     dataStore.toggleUploaded(false);
                                     chartStore.clearChartConfig();
+                                    errorNum = 0;
                                 }
                             "
                             >X</span
@@ -103,14 +104,117 @@
                         v-for="lang in langs"
                         :key="lang"
                         :class="getBtnClass(lang)"
-                        @click="(dataStore.setUploadedFileLang(lang), chartStore.setActiveLang(lang))"
+                        @click="
+                            () => {
+                                dataStore.setUploadedFileLang(lang);
+                                dataStore.setLanguageConfigLang(lang === 'en' ? 'fr' : 'en');
+                                chartStore.setActiveLang(lang);
+                            }
+                        "
                     >
                         {{ lang.toUpperCase() }}
                     </button>
                 </div>
             </div>
 
-            <div class="mt-4 flex flex-col sm:flex-row gap-4">
+            <vue-final-modal
+                modalId="paste-data"
+                content-class="h-5/6 overflow-y-auto w-3/4 sm:w-2/3 mx-4 p-7 bg-white border rounded-lg"
+                class="flex justify-center items-center"
+            >
+                <paste-data @import="parsePastedData" :pastedData="pastedData"></paste-data>
+            </vue-final-modal>
+            <div v-if="fileName" class="mb-6">
+                <button
+                    type="button"
+                    class="flex items-center justify-between w-full rounded-lg border border-gray-300 bg-gray-50 px-5 py-4 text-left hover:bg-gray-100 hover:border-gray-500 transition shadow-sm"
+                    :aria-expanded="showConfigSection"
+                    @click="showConfigSection = !showConfigSection"
+                >
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-lg text-gray-800">
+                            {{ $t('HACK.datatable.uploadConfig.title') }}
+                        </span>
+                        <span class="font-normal text-gray-500">
+                            {{ $t('HACK.datatable.uploadConfig.description', { lang: configLanguage.toUpperCase() }) }}
+                        </span>
+                    </div>
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        class="transition-transform duration-200 text-gray-600"
+                        :class="{ 'rotate-180': showConfigSection }"
+                    >
+                        <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <div v-show="showConfigSection" class="mt-4">
+                    <!-- drag and drop zone -->
+                    <div
+                        class="upload-file flex flex-col items-center justify-center mt-2 p-4 sm:p-12 bg-gray-100 border-4 border-dashed border-gray-300"
+                        @drop.prevent="uploadConfigFile($event)"
+                        @dragover.prevent
+                        @dragleave.prevent
+                    >
+                        <div class="align-middle pb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 -2 30 30">
+                                <path
+                                    d="M599,692 C597.896,692 597,692.896 597,694 L597,698 L575,698 L575,694 C575,692.896 574.104,692 573,692 C571.896,692 571,692.896 571,694 L571,701 C571,701.479 571.521,702 572,702 L600,702 C600.604,702 601,701.542 601,701 L601,694 C601,692.896 600.104,692 599,692 L599,692 Z M582,684 L584,684 L584,693 C584,694.104 584.896,695 586,695 C587.104,695 588,694.104 588,693 L588,684 L590,684 C590.704,684 591.326,684.095 591.719,683.7 C592.11,683.307 592.11,682.668 591.719,682.274 L586.776,676.283 C586.566,676.073 586.289,675.983 586.016,675.998 C585.742,675.983 585.465,676.073 585.256,676.283 L580.313,682.274 C579.921,682.668 579.921,683.307 580.313,683.7 C580.705,684.095 581.608,684 582,684 L582,684 Z"
+                                    transform="translate(-571.000000, -676.000000)"
+                                />
+                            </svg>
+                        </div>
+
+                        <div class="text-center">{{ $t('HACK.data.drag') }}</div>
+                        <div>{{ $t('HACK.label.or') }}</div>
+
+                        <div class="mt-4">
+                            <button
+                                class="bg-white border rounded border-black hover:bg-gray-100 font-bold p-4"
+                                :class="{ 'disabled hover:bg-gray-400': configFileName }"
+                                :disabled="configFileName !== ''"
+                                @click="configFileInput?.click()"
+                            >
+                                {{ $t('HACK.data.upload') }}
+                            </button>
+                            <input
+                                ref="configFileInput"
+                                type="file"
+                                class="cursor-pointer"
+                                accept=".json"
+                                tabindex="-1"
+                                :aria-label="$t('HACK.data.upload')"
+                                :disabled="configFileName !== ''"
+                                @change="onConfigFileUpload($event)"
+                            />
+                        </div>
+
+                        <div v-if="errorNum !== 0" class="mt-2 text-red-800">
+                            {{ errorMessage }}
+                        </div>
+                        <div class="mt-4 text-gray-600">{{ $t('HACK.datatable.uploadConfig.supported') }}</div>
+
+                        <div v-if="configFileName" class="relative w-full max-w-sm">
+                            <input
+                                class="border border-black box-border w-full mt-4 p-2 pr-6"
+                                type="search"
+                                readonly
+                                v-model="configFileName"
+                                :aria-label="$t('HACK.data.filename')"
+                            />
+                            <span class="clear-btn absolute cursor-pointer" @click="clearConfigFile">X</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row gap-4">
                 <button
                     class="bg-black text-white rounded border border-black hover:bg-gray-900 font-bold p-4"
                     :class="{ 'disabled hover:bg-gray-400': !fileName }"
@@ -122,7 +226,7 @@
                         }
                     "
                 >
-                    {{ $t('HACK.data.import') }}
+                    {{ langFile ? $t('HACK.data.import.config') : $t('HACK.data.import') }}
                 </button>
                 <button
                     class="bg-white border border-black rounded sm:ml-auto hover:bg-gray-100 font-bold p-4"
@@ -133,14 +237,6 @@
                     {{ $t('HACK.data.paste') }}
                 </button>
             </div>
-
-            <vue-final-modal
-                modalId="paste-data"
-                content-class="h-5/6 overflow-y-auto w-3/4 sm:w-2/3 mx-4 p-7 bg-white border rounded-lg"
-                class="flex justify-center items-center"
-            >
-                <paste-data @import="parsePastedData" :pastedData="pastedData"></paste-data>
-            </vue-final-modal>
         </template>
 
         <template v-else>
@@ -149,6 +245,7 @@
                 :pastedFile="pastedData"
                 :lang="props.lang"
                 :plugin="props.plugin"
+                @error="handleError"
                 @back="
                     () => {
                         dataStore.setDatatableView(false);
@@ -185,7 +282,9 @@ const props = defineProps({
     }
 });
 
-const { locale } = useI18n();
+const configLanguage = computed<LangId>(() => (dataStore.uploadedFileLang === 'en' ? 'fr' : 'en'));
+
+const { t, locale } = useI18n();
 const chartStore = useChartStore();
 const dataStore = useDataStore();
 const sidemenuStore = useSidemenuStore();
@@ -236,6 +335,11 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', checkScreenSize);
 });
 
+const handleError = (error: number) => {
+    errorNum.value = error;
+    dataStore.setDatatableView(false);
+};
+
 const onFileUpload = (event: Event) => {
     chartStore.resetStore();
     const uploadedFile = Array.from((event.target as HTMLInputElement).files as ArrayLike<File>)[0];
@@ -272,6 +376,74 @@ const parsePastedData = (content: string) => {
     pastedData.value = content;
     dataStore.setDatatableView(true);
     dataStore.toggleUploaded(true);
+};
+
+const showConfigSection = ref(false);
+
+const configFileInput = ref<HTMLInputElement | null>(null);
+const configFileName = ref<string>('');
+const langFile = ref<File | undefined>(undefined);
+
+const errorNum = ref(0);
+
+const errorMessages = computed<Record<number, string>>(() => ({
+    1: t('HACK.datatable.uploadConfig.unsupported'),
+    2: t('HACK.datatable.uploadConfig.error.structure'),
+    3: t('HACK.datatable.uploadConfig.error.series'),
+    4: t('HACK.datatable.uploadConfig.error.categories'),
+    5: t('HACK.datatable.uploadConfig.error.parse')
+}));
+
+const errorMessage = computed(() => errorMessages.value[errorNum.value] ?? '');
+
+const clearConfigFile = () => {
+    dataStore.setLanguageConfig(null, configLanguage.value);
+    errorNum.value = 0;
+    configFileName.value = '';
+    langFile.value = undefined;
+    if (configFileInput.value) configFileInput.value.value = '';
+};
+
+const processConfigFile = (file: File) => {
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        langFile.value = file;
+        configFileName.value = file.name;
+        errorNum.value = 0;
+        applyConfig();
+    } else {
+        langFile.value = undefined;
+        configFileName.value = '';
+        errorNum.value = 1;
+    }
+};
+
+const onConfigFileUpload = (event: Event) => {
+    const file = Array.from((event.target as HTMLInputElement).files as ArrayLike<File>)[0];
+    if (file) processConfigFile(file);
+    if (configFileInput.value) configFileInput.value.value = '';
+};
+
+const uploadConfigFile = (event: DragEvent) => {
+    if (event.dataTransfer?.files[0]) {
+        processConfigFile(event.dataTransfer.files[0]);
+    }
+};
+
+const applyConfig = async () => {
+    if (!langFile.value) return;
+    errorNum.value = 0;
+
+    try {
+        const text = await langFile.value.text();
+        const parsed = JSON.parse(text);
+
+        //save lang file
+        dataStore.setLanguageConfig(parsed, configLanguage.value);
+
+    } catch (err) {
+        console.error(err);
+        errorNum.value = 5;
+    }
 };
 </script>
 
