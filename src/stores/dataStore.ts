@@ -8,12 +8,28 @@ export const useDataStore = defineStore('chartData', {
         gridData: [] as GridRow[],
         uploaded: false,
         datatableView: false,
-        uploadedFileLang: 'en' as LangId
+        uploadedFileLang: 'en' as LangId,
+        languageConfig: null as any | null
     }),
     actions: {
         /** Set the uploaded file language */
         setUploadedFileLang(lang: LangId) {
             this.uploadedFileLang = lang;
+        },
+
+        /** Set the uploaded language config */
+        setLanguageConfig(file: any, lang: LangId) {
+            this.languageConfig = {
+                file,
+                lang
+            };
+        },
+
+        /** Set language of uploaded language config */
+        setLanguageConfigLang(lang: LangId) {
+            if (this.languageConfig) {
+                this.languageConfig.lang = lang;
+            }
         },
 
         /** Reset store to initial state */

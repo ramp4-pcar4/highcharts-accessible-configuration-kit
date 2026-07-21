@@ -8,20 +8,6 @@
             >
                 {{ $t('HACK.datatable.uploadNew') }}
             </button>
-            <button
-                class="bg-white text-black self-start border text-sm md:text-base rounded border-black hover:bg-gray-100 font-bold p-2 mb-2 sm:mb-0 overflow-visible mr-2"
-                @click="$vfm.open('lang-config-upload')"
-            >
-                {{ $t('HACK.datatable.uploadConfig') }}
-            </button>
-
-            <vue-final-modal
-                modalId="lang-config-upload"
-                content-class="w-3/4 sm:w-1/2 mx-4 p-7 bg-white border rounded-lg"
-                class="flex justify-center items-center"
-            >
-                <upload-lang-config @close="$vfm.close('lang-config-upload')" />
-            </vue-final-modal>
 
             <!-- Row and column actions -->
             <div class="ml-auto max-w-full">
@@ -214,8 +200,6 @@
 </template>
 
 <script setup lang="ts">
-import { VueFinalModal } from 'vue-final-modal';
-import UploadLangConfig from './helpers/upload-lang-config.vue';
 import { computed, reactive, ref, inject, onBeforeUnmount, onMounted, nextTick } from 'vue';
 import { useDataStore } from '../stores/dataStore';
 import { useChartStore } from '../stores/chartStore';
@@ -246,7 +230,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['back', 'change-view']);
+const emit = defineEmits(['back', 'change-view', 'error']);
 
 const $papa: any = inject('$papa');
 const dataStore = useDataStore();
@@ -341,6 +325,30 @@ onMounted(() => {
                     en: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'en' }),
                     fr: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'fr' })
                 };
+                if (dataStore.languageConfig) {
+                    //check json structure
+                    if (
+                        !dataStore.languageConfig.file.xAxis ||
+                        !Array.isArray(dataStore.languageConfig.file.xAxis.categories) ||
+                        !Array.isArray(dataStore.languageConfig.file.series)
+                    ) {
+                        emit('error', 2);
+                        return;
+                    }
+                    
+                    //check series number
+                    if (dataStore.languageConfig.file.series.length !== headers.value.length - 1) {
+                        emit('error', 3);
+                        return;
+                    }
+                    //check category number
+                    if (dataStore.languageConfig.file.xAxis.categories.length !== gridData.value.length) {
+                        emit('error', 4);
+                        return;
+                    }
+                    dataStore.applyLanguageConfig(dataStore.languageConfig.file, dataStore.languageConfig.lang);
+                    chartStore.applyLanguageConfig(dataStore.languageConfig.file, dataStore.languageConfig.lang);
+                }
             },
             error: (err: any) => {
                 console.error('Error parsing file: ', err);
