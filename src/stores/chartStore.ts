@@ -923,6 +923,59 @@ export const useChartStore = defineStore('chartProperties', {
                 return { en: value, fr: value };
             }
             return { en: value.en || '', fr: value.fr || '' };
+        },
+        applyLanguageConfig(config: HighchartsConfig, lang: LangId) {
+            if (config.title?.text) {
+                this.chartConfig.title.text[lang] =
+                    typeof config.title.text === 'string' ? config.title.text : (config.title.text[lang] ?? '');
+            }
+
+            if (config.subtitle?.text) {
+                this.chartConfig.subtitle.text[lang] =
+                    typeof config.subtitle.text === 'string'
+                        ? config.subtitle.text
+                        : (config.subtitle.text[lang] ?? '');
+            }
+
+            if (config.xAxis?.title?.text) {
+                this.chartConfig.xAxis.title.text[lang] =
+                    typeof config.xAxis.title.text === 'string'
+                        ? config.xAxis.title.text
+                        : (config.xAxis.title.text[lang] ?? '');
+            }
+
+            config.xAxis?.categories?.forEach((category, index) => {
+                const cat = this.chartConfig.xAxis?.categories?.[index];
+
+                if (cat && typeof cat === 'object') {
+                    cat[lang] =
+                        typeof category === 'string'
+                            ? category
+                            : typeof category === 'object' && category !== null
+                              ? (category[lang] ?? '')
+                              : String(category);
+                }
+            });
+
+            if (config.yAxis?.title?.text) {
+                this.chartConfig.yAxis.title.text[lang] =
+                    typeof config.yAxis.title.text === 'string'
+                        ? config.yAxis.title.text
+                        : (config.yAxis.title.text[lang] ?? '');
+            }
+
+            config.series?.forEach((series: any, index: number) => {
+                if (!this.chartConfig.series[index]) return;
+
+                if (series.name) {
+                    this.chartConfig.series[index].name[lang] =
+                        typeof series.name === 'string' ? series.name : (series.name[lang] ?? '');
+                }
+            });
+
+            this.chartConfig.series.forEach((series: SeriesData) => {
+                series.name = this.toBilingual(series.name);
+            });
         }
     }
 });

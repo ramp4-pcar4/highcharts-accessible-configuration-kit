@@ -32,6 +32,7 @@ HACK.data.upload.lang.description,This determines which column will be treated a
 HACK.data.supported,"Supported file types: csv, xls, xlsx",1,"Types de fichiers pris en charge : csv, xls, xlsx",1
 HACK.data.unsupported,"Unsupported file type. Please upload a csv, xls, or xlsx file.",1,"Type de fichier non pris en charge. Veuillez télécharger un fichier csv, xls ou xlsx.",1
 HACK.data.import,Import data from file,1,Importer des données à partir d'un fichier,1
+HACK.data.import.config,Import data and translation file,1,Importer les données et le fichier de traduction,1
 HACK.data.import.instructions,You may only upload one file at a time. You may remove this file to select another.,1,Vous ne pouvez télécharger qu'un seul fichier à la fois. Vous pouvez supprimer ce fichier pour en sélectionner un autre.,1
 HACK.data.paste,Paste your data,1,Collez vos données,1
 HACK.data.paste.label,Use pasted data,1,Utiliser des données collées,1
@@ -50,7 +51,17 @@ HACK.export.downloadSVG,Download SVG,1,Télécharger SVG,1
 HACK.export.downloadCSV,Download CSV,1,Télécharger CSV,1
 HACK.export.downloadXLS,Download XLS,1,Télécharger XLS,1
 HACK.export.viewData,View data table,1,Afficher le tableau de données,1
-HACK.datatable.uploadNew,Upload new data,1,Télécharger de nouvelles données,1
+HACK.datatable.uploadNew,Upload new data or translation file,1,Télécharger de nouvelles données ou un fichier de traduction,1
+HACK.datatable.uploadConfig.title,Optional: Upload a JSON language configuration file,1,Facultatif : Télécharger un fichier de configuration de langue JSON,1
+HACK.datatable.uploadConfig.lang,Select the language configuration you would like to override,1,Sélectionnez la configuration de langue que vous souhaitez remplacer.,0
+HACK.datatable.uploadConfig.supported,Supported formats: .json,1,Formats supportés : .json,1
+HACK.datatable.uploadConfig.unsupported,Unsupported file type. Please upload a .json file.,1,Type de fichier non pris en charge. Veuillez télécharger un fichier .json.,1
+HACK.datatable.uploadConfig.error.structure,Invalid JSON structure,1, Structure JSON invalide,1
+HACK.datatable.uploadConfig.error.series,Mismatch in number of series,1,Le nombre de séries ne correspond pas,1
+HACK.datatable.uploadConfig.error.categories,Mismatch in number of categories,1,Le nombre de catégories ne correspond pas,1
+HACK.datatable.uploadConfig.error.parse,Parsing error,1,Erreur d'analyse,1
+HACK.datatable.uploadConfig.apply,Apply,1,Appliquer,1
+HACK.datatable.uploadConfig.description,Upload a translation file to populate the {lang} language configuration.,1,Téléchargez un fichier de traduction pour remplir la configuration de la langue {lang}.,1
 HACK.datatable.selectRow,Select row,1,Sélectionner une ligne,1
 HACK.datatable.selectCol,Select column,1,Sélectionner une colonne,1
 HACK.datatable.addNewCol,Add column, 1,Ajouter une colonne,1
