@@ -51,7 +51,7 @@ export interface HighchartsConfig {
         pointFormat?: string;
         useHTML?: boolean;
     };
-    series: SeriesData[] | { data: SeriesData[] };
+    series: SeriesData[];
 }
 
 export interface ExportMenuOptions {

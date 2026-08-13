@@ -230,7 +230,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['back', 'change-view']);
+const emit = defineEmits(['back', 'change-view', 'error']);
 
 const $papa: any = inject('$papa');
 const dataStore = useDataStore();
@@ -325,6 +325,30 @@ onMounted(() => {
                     en: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'en' }),
                     fr: chartStore.defaultTitle || t('HACK.customization.titles.chartTitle', {}, { locale: 'fr' })
                 };
+                if (dataStore.languageConfig) {
+                    //check json structure
+                    if (
+                        !dataStore.languageConfig.file.xAxis ||
+                        !Array.isArray(dataStore.languageConfig.file.xAxis.categories) ||
+                        !Array.isArray(dataStore.languageConfig.file.series)
+                    ) {
+                        emit('error', 2);
+                        return;
+                    }
+                    
+                    //check series number
+                    if (dataStore.languageConfig.file.series.length !== headers.value.length - 1) {
+                        emit('error', 3);
+                        return;
+                    }
+                    //check category number
+                    if (dataStore.languageConfig.file.xAxis.categories.length !== gridData.value.length) {
+                        emit('error', 4);
+                        return;
+                    }
+                    dataStore.applyLanguageConfig(dataStore.languageConfig.file, dataStore.languageConfig.lang);
+                    chartStore.applyLanguageConfig(dataStore.languageConfig.file, dataStore.languageConfig.lang);
+                }
             },
             error: (err: any) => {
                 console.error('Error parsing file: ', err);
